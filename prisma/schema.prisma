@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  name           String?
+  hashedPassword String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  subscription        Subscription?
+  moodEntries         MoodEntry[]
+  journals            Journal[]
+  selfcareCompletions SelfcareCompletion[]
+  streakData          StreakData?
+}
+
+model Subscription {
+  id        String    @id @default(cuid())
+  userId    String    @unique
+  plan      String    @default("free")
+  startDate DateTime  @default(now())
+  endDate   DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model MoodEntry {
+  id        String   @id @default(cuid())
+  userId    String
+  score     Int
+  note      String?
+  date      String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+}
+
+model Journal {
+  id             String   @id @default(cuid())
+  userId         String
+  title          String?
+  sentiment      String?
+  sentimentScore Float?
+  summary        String?
+  date           String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages JournalMessage[]
+}
+
+model JournalMessage {
+  id        String   @id @default(cuid())
+  journalId String
+  userId    String
+  role      String
+  content   String
+  createdAt DateTime @default(now())
+
+  journal Journal @relation(fields: [journalId], references: [id], onDelete: Cascade)
+}
+
+model SelfcareCompletion {
+  id           String   @id @default(cuid())
+  userId       String
+  routineType  String
+  routineTitle String
+  routineData  String?
+  durationSec  Int      @default(0)
+  date         String
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model StreakData {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  currentStreak  Int      @default(0)
+  longestStreak  Int      @default(0)
+  lastActiveDate String?
+  freezesUsed    Int      @default(0)
+  freezeMonth    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
