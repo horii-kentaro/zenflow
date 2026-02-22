@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-helpers";
 import { moodSchema } from "@/lib/validations";
 import { getTodayDate } from "@/lib/utils";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { validationError, internalError, apiSuccess } from "@/lib/api-error";
 
 export async function GET(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.api, "mood");
@@ -26,7 +26,7 @@ export async function GET(request: Request) {
     orderBy: { date: "asc" },
   });
 
-  return NextResponse.json({ success: true, data: entries });
+  return apiSuccess(entries);
 }
 
 export async function POST(request: Request) {
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     const parsed = moodSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
+      return validationError(parsed.error.issues[0].message);
     }
 
     const today = getTodayDate();
@@ -61,8 +61,8 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json({ success: true, data: entry });
+    return apiSuccess(entry);
   } catch {
-    return NextResponse.json({ error: "気分の記録に失敗しました" }, { status: 500 });
+    return internalError("気分の記録に失敗しました");
   }
 }

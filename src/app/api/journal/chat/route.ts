@@ -1,10 +1,10 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { anthropic } from "@/lib/anthropic";
 import { requireAuth } from "@/lib/auth-helpers";
 import { journalChatSchema } from "@/lib/validations";
 import { JOURNAL_SYSTEM_PROMPT, SENTIMENT_SYSTEM_PROMPT } from "@/lib/prompts";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { validationError, notFoundError, internalError } from "@/lib/api-error";
 
 export async function POST(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.ai, "journal-chat");
@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     const parsed = journalChatSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
+      return validationError(parsed.error.issues[0].message);
     }
 
     const { journalId, message } = parsed.data;
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     });
 
     if (!journal) {
-      return NextResponse.json({ error: "ジャーナルが見つかりません" }, { status: 404 });
+      return notFoundError("ジャーナルが見つかりません");
     }
 
     // Save user message
@@ -111,7 +111,7 @@ export async function POST(request: Request) {
       },
     });
   } catch {
-    return NextResponse.json({ error: "チャットの送信に失敗しました" }, { status: 500 });
+    return internalError("チャットの送信に失敗しました");
   }
 }
 

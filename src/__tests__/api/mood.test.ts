@@ -51,7 +51,7 @@ describe("GET /api/mood", () => {
 
   it("未認証ユーザーには401を返す", async () => {
     mockRequireAuth.mockResolvedValue({
-      error: Response.json({ error: "Unauthorized" }, { status: 401 }),
+      error: Response.json({ success: false, error: { code: "UNAUTHORIZED", message: "認証が必要です" } }, { status: 401 }),
       userId: "",
     });
 
@@ -134,7 +134,7 @@ describe("POST /api/mood", () => {
 
   it("未認証ユーザーには401を返す", async () => {
     mockRequireAuth.mockResolvedValue({
-      error: Response.json({ error: "Unauthorized" }, { status: 401 }),
+      error: Response.json({ success: false, error: { code: "UNAUTHORIZED", message: "認証が必要です" } }, { status: 401 }),
       userId: "",
     });
 

@@ -4,6 +4,7 @@ import { requireAuth } from "@/lib/auth-helpers";
 import { changePasswordSchema } from "@/lib/validations";
 import bcrypt from "bcryptjs";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { validationError, notFoundError, internalError } from "@/lib/api-error";
 
 export async function POST(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.auth, "change-password");
@@ -17,25 +18,19 @@ export async function POST(request: Request) {
     const parsed = changePasswordSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: parsed.error.issues[0].message },
-        { status: 400 }
-      );
+      return validationError(parsed.error.issues[0].message);
     }
 
     const { currentPassword, newPassword } = parsed.data;
 
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
-      return NextResponse.json({ error: "ユーザーが見つかりません" }, { status: 404 });
+      return notFoundError("ユーザーが見つかりません");
     }
 
     const passwordMatch = await bcrypt.compare(currentPassword, user.hashedPassword);
     if (!passwordMatch) {
-      return NextResponse.json(
-        { error: "現在のパスワードが正しくありません" },
-        { status: 400 }
-      );
+      return validationError("現在のパスワードが正しくありません");
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 12);
@@ -49,9 +44,6 @@ export async function POST(request: Request) {
       message: "パスワードが変更されました。",
     });
   } catch {
-    return NextResponse.json(
-      { error: "パスワードの変更に失敗しました" },
-      { status: 500 }
-    );
+    return internalError("パスワードの変更に失敗しました");
   }
 }

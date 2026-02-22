@@ -4,6 +4,7 @@ import { forgotPasswordSchema } from "@/lib/validations";
 import { createPasswordResetToken } from "@/lib/tokens";
 import { sendPasswordResetEmail } from "@/lib/mail";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { validationError, internalError } from "@/lib/api-error";
 
 export async function POST(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.auth, "forgot-password");
@@ -14,10 +15,7 @@ export async function POST(request: Request) {
     const parsed = forgotPasswordSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: parsed.error.issues[0].message },
-        { status: 400 }
-      );
+      return validationError(parsed.error.issues[0].message);
     }
 
     const { email } = parsed.data;
@@ -34,9 +32,6 @@ export async function POST(request: Request) {
       message: "パスワードリセットのメールを送信しました。メールをご確認ください。",
     });
   } catch {
-    return NextResponse.json(
-      { error: "パスワードリセットメールの送信に失敗しました" },
-      { status: 500 }
-    );
+    return internalError("パスワードリセットメールの送信に失敗しました");
   }
 }

@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-helpers";
 import { getTodayDate } from "@/lib/utils";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { apiSuccess, internalError } from "@/lib/api-error";
 
 export async function GET(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.api, "journal");
@@ -21,7 +21,7 @@ export async function GET(request: Request) {
     },
   });
 
-  return NextResponse.json({ success: true, data: journals });
+  return apiSuccess(journals);
 }
 
 export async function POST(request: Request) {
@@ -38,8 +38,8 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json({ success: true, data: journal });
+    return apiSuccess(journal);
   } catch {
-    return NextResponse.json({ error: "ジャーナルの作成に失敗しました" }, { status: 500 });
+    return internalError("ジャーナルの作成に失敗しました");
   }
 }

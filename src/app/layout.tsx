@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { Noto_Sans_JP } from "next/font/google";
 import { CookieBanner } from "@/components/ui/CookieBanner";
+import { ToastContainer } from "@/components/ui/ToastContainer";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -30,6 +31,7 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${notoSansJP.variable} antialiased`}>
         {children}
         <CookieBanner />
+        <ToastContainer />
       </body>
     </html>
   );

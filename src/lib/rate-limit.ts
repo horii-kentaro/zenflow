@@ -95,7 +95,13 @@ export function rateLimit(
   if (!result.success) {
     const retryAfter = Math.ceil((result.resetAt - Date.now()) / 1000);
     return NextResponse.json(
-      { error: "リクエスト数の上限に達しました。しばらく待ってからお試しください。" },
+      {
+        success: false,
+        error: {
+          code: "RATE_LIMITED",
+          message: "リクエスト数の上限に達しました。しばらく待ってからお試しください。",
+        },
+      },
       {
         status: 429,
         headers: {

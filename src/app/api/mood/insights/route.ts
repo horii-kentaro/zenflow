@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, getUserPlan } from "@/lib/auth-helpers";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { apiSuccess } from "@/lib/api-error";
 
 export async function GET(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.api, "mood-insights");
@@ -18,12 +18,9 @@ export async function GET(request: Request) {
   });
 
   if (entries.length < 3) {
-    return NextResponse.json({
-      success: true,
-      data: {
-        insight: "データを蓄積中です。毎日の気分を記録すると、AIがパターンを分析します。",
-        premium: plan === "premium",
-      },
+    return apiSuccess({
+      insight: "データを蓄積中です。毎日の気分を記録すると、AIがパターンを分析します。",
+      premium: plan === "premium",
     });
   }
 
@@ -39,8 +36,5 @@ export async function GET(request: Request) {
     insight = "気分は安定しています。日々のセルフケアが良い効果を生んでいるようです。";
   }
 
-  return NextResponse.json({
-    success: true,
-    data: { insight, averageScore: avgScore, recentAverage: recentAvg, premium: plan === "premium" },
-  });
+  return apiSuccess({ insight, averageScore: avgScore, recentAverage: recentAvg, premium: plan === "premium" });
 }

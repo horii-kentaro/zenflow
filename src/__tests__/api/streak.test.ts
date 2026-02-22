@@ -46,7 +46,7 @@ describe("GET /api/streak", () => {
 
   it("未認証ユーザーには401を返す", async () => {
     mockRequireAuth.mockResolvedValue({
-      error: Response.json({ error: "Unauthorized" }, { status: 401 }),
+      error: Response.json({ success: false, error: { code: "UNAUTHORIZED", message: "認証が必要です" } }, { status: 401 }),
       userId: "",
     });
 
@@ -65,6 +65,6 @@ describe("GET /api/streak", () => {
     const json = await response.json();
 
     expect(response.status).toBe(500);
-    expect(json.error).toBe("ストリーク情報の取得に失敗しました");
+    expect(json.error.message).toBe("ストリーク情報の取得に失敗しました");
   });
 });

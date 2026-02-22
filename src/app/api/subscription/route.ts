@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-helpers";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { apiSuccess, validationError, internalError } from "@/lib/api-error";
 
 export async function GET(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.api, "subscription");
@@ -13,10 +13,7 @@ export async function GET(request: Request) {
     where: { userId: userId },
   });
 
-  return NextResponse.json({
-    success: true,
-    data: sub || { plan: "free", startDate: new Date().toISOString() },
-  });
+  return apiSuccess(sub || { plan: "free", startDate: new Date().toISOString() });
 }
 
 export async function POST(request: Request) {
@@ -30,7 +27,7 @@ export async function POST(request: Request) {
     const { plan } = await request.json();
 
     if (plan !== "free" && plan !== "premium") {
-      return NextResponse.json({ error: "無効なプランです" }, { status: 400 });
+      return validationError("無効なプランです");
     }
 
     const sub = await prisma.subscription.upsert({
@@ -48,8 +45,8 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json({ success: true, data: sub });
+    return apiSuccess(sub);
   } catch {
-    return NextResponse.json({ error: "プランの変更に失敗しました" }, { status: 500 });
+    return internalError("プランの変更に失敗しました");
   }
 }

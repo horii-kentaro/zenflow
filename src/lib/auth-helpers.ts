@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { unauthorizedError } from "@/lib/api-error";
 
 export interface AuthUser {
   id: string;
@@ -17,7 +18,7 @@ export async function getAuthenticatedUser(): Promise<AuthUser | null> {
 export async function requireAuth(): Promise<{ error: NextResponse; userId: string } | { error: null; userId: string }> {
   const user = await getAuthenticatedUser();
   if (!user) {
-    return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }), userId: "" };
+    return { error: unauthorizedError(), userId: "" };
   }
   return { error: null, userId: user.id };
 }

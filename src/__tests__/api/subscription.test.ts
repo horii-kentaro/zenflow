@@ -60,7 +60,7 @@ describe("GET /api/subscription", () => {
 
   it("未認証ユーザーには401を返す", async () => {
     mockRequireAuth.mockResolvedValue({
-      error: Response.json({ error: "Unauthorized" }, { status: 401 }),
+      error: Response.json({ success: false, error: { code: "UNAUTHORIZED", message: "認証が必要です" } }, { status: 401 }),
       userId: "",
     });
 
@@ -105,6 +105,6 @@ describe("POST /api/subscription", () => {
     const json = await response.json();
 
     expect(response.status).toBe(400);
-    expect(json.error).toBe("無効なプランです");
+    expect(json.error.message).toBe("無効なプランです");
   });
 });

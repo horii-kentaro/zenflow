@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-helpers";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { apiSuccess, notFoundError } from "@/lib/api-error";
 
 export async function GET(
   request: Request,
@@ -23,10 +23,10 @@ export async function GET(
   });
 
   if (!journal) {
-    return NextResponse.json({ error: "ジャーナルが見つかりません" }, { status: 404 });
+    return notFoundError("ジャーナルが見つかりません");
   }
 
-  return NextResponse.json({ success: true, data: journal });
+  return apiSuccess(journal);
 }
 
 export async function DELETE(
@@ -46,10 +46,10 @@ export async function DELETE(
   });
 
   if (!journal) {
-    return NextResponse.json({ error: "ジャーナルが見つかりません" }, { status: 404 });
+    return notFoundError("ジャーナルが見つかりません");
   }
 
   await prisma.journal.delete({ where: { id } });
 
-  return NextResponse.json({ success: true });
+  return apiSuccess(null);
 }

@@ -33,7 +33,7 @@ describe("GET /api/subscription/check", () => {
     const json = await response.json();
 
     expect(response.status).toBe(400);
-    expect(json.error).toBe("feature パラメータが必要です");
+    expect(json.error.message).toBe("feature パラメータが必要です");
   });
 
   it("selfcareの利用可能状態を返す", async () => {
@@ -69,7 +69,7 @@ describe("GET /api/subscription/check", () => {
 
   it("未認証ユーザーには401を返す", async () => {
     mockRequireAuth.mockResolvedValue({
-      error: Response.json({ error: "Unauthorized" }, { status: 401 }),
+      error: Response.json({ success: false, error: { code: "UNAUTHORIZED", message: "認証が必要です" } }, { status: 401 }),
       userId: "",
     });
 

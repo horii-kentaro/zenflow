@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { anthropic } from "@/lib/anthropic";
 import { requireAuth } from "@/lib/auth-helpers";
 import { SELFCARE_SYSTEM_PROMPT, buildSelfcarePrompt } from "@/lib/prompts";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { apiSuccess } from "@/lib/api-error";
 
 const FALLBACK_ROUTINE = {
   type: "breathing",
@@ -55,13 +55,13 @@ export async function GET(request: Request) {
     const jsonMatch = text.match(/\{[\s\S]*\}/);
 
     if (!jsonMatch) {
-      return NextResponse.json({ success: true, data: FALLBACK_ROUTINE });
+      return apiSuccess(FALLBACK_ROUTINE);
     }
 
     const routine = JSON.parse(jsonMatch[0]);
-    return NextResponse.json({ success: true, data: routine });
+    return apiSuccess(routine);
   } catch (e) {
     console.error("Selfcare generation error:", e);
-    return NextResponse.json({ success: true, data: FALLBACK_ROUTINE });
+    return apiSuccess(FALLBACK_ROUTINE);
   }
 }

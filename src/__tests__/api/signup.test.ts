@@ -56,7 +56,7 @@ describe("POST /api/auth/signup", () => {
     const json = await response.json();
 
     expect(json.success).toBe(true);
-    expect(json.userId).toBe("user-1");
+    expect(json.data.userId).toBe("user-1");
   });
 
   it("既存のメールアドレスで登録を拒否する", async () => {
@@ -74,8 +74,8 @@ describe("POST /api/auth/signup", () => {
     const response = await POST(request);
     const json = await response.json();
 
-    expect(response.status).toBe(400);
-    expect(json.error).toBe("このメールアドレスは既に登録されています");
+    expect(response.status).toBe(409);
+    expect(json.error.message).toBe("このメールアドレスは既に登録されています");
   });
 
   it("無効なデータでバリデーションエラーを返す", async () => {

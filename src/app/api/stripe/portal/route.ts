@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-helpers";
 import { getStripe } from "@/lib/stripe";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { apiSuccess, validationError, internalError } from "@/lib/api-error";
 
 export async function POST(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.api, "stripe-portal");
@@ -17,10 +17,7 @@ export async function POST(request: Request) {
     });
 
     if (!sub?.stripeCustomerId) {
-      return NextResponse.json(
-        { error: "Stripe顧客情報が見つかりません" },
-        { status: 400 }
-      );
+      return validationError("Stripe顧客情報が見つかりません");
     }
 
     const baseUrl = process.env.AUTH_URL || "http://localhost:3000";
@@ -30,12 +27,9 @@ export async function POST(request: Request) {
       return_url: `${baseUrl}/settings`,
     });
 
-    return NextResponse.json({ success: true, url: session.url });
+    return apiSuccess({ url: session.url });
   } catch (e) {
     console.error("Stripe portal error:", e);
-    return NextResponse.json(
-      { error: "ポータルセッションの作成に失敗しました" },
-      { status: 500 }
-    );
+    return internalError("ポータルセッションの作成に失敗しました");
   }
 }

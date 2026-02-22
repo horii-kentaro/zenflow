@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-helpers";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { apiSuccess, internalError } from "@/lib/api-error";
 
 export async function GET(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.api, "billing");
@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     });
 
     if (!sub) {
-      return NextResponse.json({ success: true, data: [] });
+      return apiSuccess([]);
     }
 
     const history = await prisma.billingHistory.findMany({
@@ -25,11 +25,8 @@ export async function GET(request: Request) {
       take: 20,
     });
 
-    return NextResponse.json({ success: true, data: history });
+    return apiSuccess(history);
   } catch {
-    return NextResponse.json(
-      { error: "請求履歴の取得に失敗しました" },
-      { status: 500 }
-    );
+    return internalError("請求履歴の取得に失敗しました");
   }
 }

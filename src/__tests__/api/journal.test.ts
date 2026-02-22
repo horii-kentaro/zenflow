@@ -55,7 +55,7 @@ describe("GET /api/journal", () => {
 
   it("未認証ユーザーには401を返す", async () => {
     mockRequireAuth.mockResolvedValue({
-      error: Response.json({ error: "Unauthorized" }, { status: 401 }),
+      error: Response.json({ success: false, error: { code: "UNAUTHORIZED", message: "認証が必要です" } }, { status: 401 }),
       userId: "",
     });
 
@@ -97,7 +97,7 @@ describe("POST /api/journal", () => {
     const json = await response.json();
 
     expect(response.status).toBe(500);
-    expect(json.error).toBe("ジャーナルの作成に失敗しました");
+    expect(json.error.message).toBe("ジャーナルの作成に失敗しました");
   });
 });
 
@@ -132,7 +132,7 @@ describe("GET /api/journal/[id]", () => {
     const json = await response.json();
 
     expect(response.status).toBe(404);
-    expect(json.error).toBe("ジャーナルが見つかりません");
+    expect(json.error.message).toBe("ジャーナルが見つかりません");
   });
 });
 

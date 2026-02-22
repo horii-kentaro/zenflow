@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { validationError, internalError } from "@/lib/api-error";
 
 export async function GET(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.auth, "verify-email");
@@ -11,7 +12,7 @@ export async function GET(request: Request) {
     const token = searchParams.get("token");
 
     if (!token) {
-      return NextResponse.json({ error: "トークンが必要です" }, { status: 400 });
+      return validationError("トークンが必要です");
     }
 
     const verificationToken = await prisma.verificationToken.findUnique({
@@ -19,10 +20,7 @@ export async function GET(request: Request) {
     });
 
     if (!verificationToken || verificationToken.expiresAt < new Date()) {
-      return NextResponse.json(
-        { error: "無効または期限切れの認証リンクです。" },
-        { status: 400 }
-      );
+      return validationError("無効または期限切れの認証リンクです。");
     }
 
     await prisma.$transaction([
@@ -40,9 +38,6 @@ export async function GET(request: Request) {
       message: "メールアドレスが確認されました。",
     });
   } catch {
-    return NextResponse.json(
-      { error: "メールの確認に失敗しました" },
-      { status: 500 }
-    );
+    return internalError("メールの確認に失敗しました");
   }
 }

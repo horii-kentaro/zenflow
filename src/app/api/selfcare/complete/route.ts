@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-helpers";
 import { updateStreak } from "@/lib/streak";
 import { getTodayDate } from "@/lib/utils";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { apiSuccess, internalError } from "@/lib/api-error";
 
 export async function POST(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.api, "selfcare-complete");
@@ -29,8 +29,8 @@ export async function POST(request: Request) {
 
     const streak = await updateStreak(userId);
 
-    return NextResponse.json({ success: true, data: { completion, streak } });
+    return apiSuccess({ completion, streak });
   } catch {
-    return NextResponse.json({ error: "完了の記録に失敗しました" }, { status: 500 });
+    return internalError("完了の記録に失敗しました");
   }
 }

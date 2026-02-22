@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-helpers";
 import { getStripe, getStripePriceId } from "@/lib/stripe";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { apiSuccess, notFoundError, internalError } from "@/lib/api-error";
 
 export async function POST(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.api, "stripe-checkout");
@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: "ユーザーが見つかりません" }, { status: 404 });
+      return notFoundError("ユーザーが見つかりません");
     }
 
     // 既存のStripe Customerを使うか、新規作成
@@ -61,12 +61,9 @@ export async function POST(request: Request) {
       metadata: { userId },
     });
 
-    return NextResponse.json({ success: true, url: session.url });
+    return apiSuccess({ url: session.url });
   } catch (e) {
     console.error("Stripe checkout error:", e);
-    return NextResponse.json(
-      { error: "チェックアウトセッションの作成に失敗しました" },
-      { status: 500 }
-    );
+    return internalError("チェックアウトセッションの作成に失敗しました");
   }
 }

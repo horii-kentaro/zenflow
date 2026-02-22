@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth-helpers";
 import { getStreakData } from "@/lib/streak";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { apiSuccess, internalError } from "@/lib/api-error";
 
 export async function GET(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.api, "streak");
@@ -11,8 +11,8 @@ export async function GET(request: Request) {
 
   try {
     const data = await getStreakData(userId);
-    return NextResponse.json({ success: true, data });
+    return apiSuccess(data);
   } catch {
-    return NextResponse.json({ error: "ストリーク情報の取得に失敗しました" }, { status: 500 });
+    return internalError("ストリーク情報の取得に失敗しました");
   }
 }

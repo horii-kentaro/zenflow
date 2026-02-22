@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth-helpers";
 import { checkFeatureAccess } from "@/lib/subscription";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { apiSuccess, validationError } from "@/lib/api-error";
 
 export async function GET(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.api, "subscription-check");
@@ -13,9 +13,9 @@ export async function GET(request: Request) {
   const feature = searchParams.get("feature") as "selfcare" | "journal" | "moodHistory" | "streakFreeze" | "insights";
 
   if (!feature) {
-    return NextResponse.json({ error: "feature パラメータが必要です" }, { status: 400 });
+    return validationError("feature パラメータが必要です");
   }
 
   const result = await checkFeatureAccess(userId, feature);
-  return NextResponse.json({ success: true, data: result });
+  return apiSuccess(result);
 }

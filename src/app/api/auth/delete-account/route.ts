@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-helpers";
 import bcrypt from "bcryptjs";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { validationError, notFoundError, internalError } from "@/lib/api-error";
 
 export async function DELETE(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.auth, "delete-account");
@@ -16,23 +17,17 @@ export async function DELETE(request: Request) {
     const { password } = body;
 
     if (!password) {
-      return NextResponse.json(
-        { error: "パスワードを入力してください" },
-        { status: 400 }
-      );
+      return validationError("パスワードを入力してください");
     }
 
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
-      return NextResponse.json({ error: "ユーザーが見つかりません" }, { status: 404 });
+      return notFoundError("ユーザーが見つかりません");
     }
 
     const passwordMatch = await bcrypt.compare(password, user.hashedPassword);
     if (!passwordMatch) {
-      return NextResponse.json(
-        { error: "パスワードが正しくありません" },
-        { status: 400 }
-      );
+      return validationError("パスワードが正しくありません");
     }
 
     // Cascade deleteにより関連データ（Subscription, MoodEntry, Journal,
@@ -44,9 +39,6 @@ export async function DELETE(request: Request) {
       message: "アカウントとすべての関連データが削除されました。",
     });
   } catch {
-    return NextResponse.json(
-      { error: "アカウントの削除に失敗しました" },
-      { status: 500 }
-    );
+    return internalError("アカウントの削除に失敗しました");
   }
 }

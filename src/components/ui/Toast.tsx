@@ -30,7 +30,7 @@ export function Toast({ message, type = "info", onClose, duration = 3000 }: Toas
   return (
     <div
       className={cn(
-        "fixed bottom-4 right-4 z-50 px-4 py-3 rounded-lg border shadow-md text-sm font-medium transition-all duration-300",
+        "px-4 py-3 rounded-lg border shadow-md text-sm font-medium transition-all duration-300",
         colors[type],
         visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
       )}

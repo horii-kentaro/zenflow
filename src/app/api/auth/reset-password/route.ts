@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { resetPasswordSchema } from "@/lib/validations";
 import bcrypt from "bcryptjs";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { validationError, internalError } from "@/lib/api-error";
 
 export async function POST(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.auth, "reset-password");
@@ -13,10 +14,7 @@ export async function POST(request: Request) {
     const parsed = resetPasswordSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: parsed.error.issues[0].message },
-        { status: 400 }
-      );
+      return validationError(parsed.error.issues[0].message);
     }
 
     const { token, password } = parsed.data;
@@ -26,10 +24,7 @@ export async function POST(request: Request) {
     });
 
     if (!resetToken || resetToken.used || resetToken.expiresAt < new Date()) {
-      return NextResponse.json(
-        { error: "無効または期限切れのリンクです。再度パスワードリセットを申請してください。" },
-        { status: 400 }
-      );
+      return validationError("無効または期限切れのリンクです。再度パスワードリセットを申請してください。");
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
@@ -50,9 +45,6 @@ export async function POST(request: Request) {
       message: "パスワードが正常にリセットされました。",
     });
   } catch {
-    return NextResponse.json(
-      { error: "パスワードのリセットに失敗しました" },
-      { status: 500 }
-    );
+    return internalError("パスワードのリセットに失敗しました");
   }
 }
