@@ -62,6 +62,7 @@ const corsHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   headers: async () => [
     {
       source: "/(.*)",

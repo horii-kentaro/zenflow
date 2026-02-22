@@ -1,0 +1,13 @@
+node_modules
+.next
+.git
+.gitignore
+*.md
+.env*
+docker-compose*.yml
+Dockerfile
+.github
+e2e
+src/__tests__
+playwright.config.ts
+vitest.config.ts

@@ -170,12 +170,12 @@ src/
 - [x] ヘルスチェックエンドポイント（/api/health）
 - [x] GA4等のアナリティクス導入
 
-### 9. CI/CD（次に着手）
-- [ ] GitHub Actions（lint、型チェック、テスト、ビルド）
-- [ ] 自動デプロイパイプライン（Vercel or Docker）
-- [ ] pre-commitフック（husky + lint-staged）
+### 9. CI/CD（完了）
+- [x] GitHub Actions（lint、型チェック、テスト、ビルド）
+- [x] 自動デプロイパイプライン（Vercel or Docker）
+- [x] pre-commitフック（husky + lint-staged）
 
-### 10. SEO
+### 10. SEO（次に着手）
 - [ ] robots.txt作成
 - [ ] sitemap.xml生成
 - [ ] OGPタグ（Open Graph）設定
