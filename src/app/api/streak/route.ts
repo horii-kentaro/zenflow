@@ -12,7 +12,7 @@ export const GET = withLogging(async function GET(request: Request) {
 
   try {
     const data = await getStreakData(userId);
-    return apiSuccess(data);
+    return apiSuccess(data, { cacheMaxAge: 60 });
   } catch {
     return internalError("ストリーク情報の取得に失敗しました");
   }

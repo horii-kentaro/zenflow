@@ -11,18 +11,27 @@ export const GET = withLogging(async function GET(request: Request) {
   const { error, userId } = await requireAuth();
   if (error) return error;
 
-  const journals = await prisma.journal.findMany({
-    where: { userId: userId },
-    orderBy: { createdAt: "desc" },
-    include: {
-      messages: {
-        take: 1,
-        orderBy: { createdAt: "asc" },
-      },
-    },
-  });
+  const { searchParams } = new URL(request.url);
+  const limit = Math.min(parseInt(searchParams.get("limit") || "10"), 50);
+  const offset = parseInt(searchParams.get("offset") || "0");
 
-  return apiSuccess(journals);
+  const [journals, total] = await Promise.all([
+    prisma.journal.findMany({
+      where: { userId: userId },
+      orderBy: { createdAt: "desc" },
+      include: {
+        messages: {
+          take: 1,
+          orderBy: { createdAt: "asc" },
+        },
+      },
+      take: limit,
+      skip: offset,
+    }),
+    prisma.journal.count({ where: { userId: userId } }),
+  ]);
+
+  return apiSuccess({ journals, total, hasMore: offset + limit < total });
 });
 
 export const POST = withLogging(async function POST(request: Request) {

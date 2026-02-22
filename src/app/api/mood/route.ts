@@ -27,7 +27,7 @@ export const GET = withLogging(async function GET(request: Request) {
     orderBy: { date: "asc" },
   });
 
-  return apiSuccess(entries);
+  return apiSuccess(entries, { cacheMaxAge: 30 });
 });
 
 export const POST = withLogging(async function POST(request: Request) {

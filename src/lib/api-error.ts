@@ -50,6 +50,19 @@ export function internalError(message = "サーバーエラーが発生しまし
   return apiError({ code: "INTERNAL_ERROR", message, status: 500 });
 }
 
-export function apiSuccess<T>(data: T, status = 200): NextResponse {
-  return NextResponse.json({ success: true, data }, { status });
+interface SuccessOptions {
+  status?: number;
+  cacheMaxAge?: number;
+}
+
+export function apiSuccess<T>(data: T, options?: SuccessOptions | number): NextResponse {
+  const opts = typeof options === "number" ? { status: options } : options;
+  const status = opts?.status ?? 200;
+  const headers: Record<string, string> = {};
+
+  if (opts?.cacheMaxAge) {
+    headers["Cache-Control"] = `private, max-age=${opts.cacheMaxAge}, stale-while-revalidate=${opts.cacheMaxAge * 2}`;
+  }
+
+  return NextResponse.json({ success: true, data }, { status, headers });
 }

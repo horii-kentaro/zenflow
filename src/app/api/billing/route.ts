@@ -26,7 +26,7 @@ export const GET = withLogging(async function GET(request: Request) {
       take: 20,
     });
 
-    return apiSuccess(history);
+    return apiSuccess(history, { cacheMaxAge: 300 });
   } catch {
     return internalError("請求履歴の取得に失敗しました");
   }

@@ -11,6 +11,7 @@ vi.mock("@/lib/prisma", () => ({
       create: vi.fn(),
       findFirst: vi.fn(),
       delete: vi.fn(),
+      count: vi.fn(),
     },
   },
 }));
@@ -31,6 +32,7 @@ const mockJournal = prisma.journal as unknown as {
   create: ReturnType<typeof vi.fn>;
   findFirst: ReturnType<typeof vi.fn>;
   delete: ReturnType<typeof vi.fn>;
+  count: ReturnType<typeof vi.fn>;
 };
 
 describe("GET /api/journal", () => {
@@ -38,19 +40,22 @@ describe("GET /api/journal", () => {
     vi.clearAllMocks();
   });
 
-  it("ジャーナル一覧を返す", async () => {
+  it("ジャーナル一覧をページネーション付きで返す", async () => {
     mockRequireAuth.mockResolvedValue({ error: null, userId: "user-1" });
     const journals = [
       { id: "j1", userId: "user-1", date: "2026-02-22", messages: [] },
     ];
     mockJournal.findMany.mockResolvedValue(journals);
+    mockJournal.count.mockResolvedValue(1);
 
     const request = new Request("http://localhost:3000/api/journal");
     const response = await GET(request);
     const json = await response.json();
 
     expect(json.success).toBe(true);
-    expect(json.data).toEqual(journals);
+    expect(json.data.journals).toEqual(journals);
+    expect(json.data.total).toBe(1);
+    expect(json.data.hasMore).toBe(false);
   });
 
   it("未認証ユーザーには401を返す", async () => {

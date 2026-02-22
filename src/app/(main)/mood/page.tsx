@@ -1,11 +1,16 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { MoodScore } from "@/types";
 import { MoodSelector } from "@/components/mood/MoodSelector";
-import { MoodHistory } from "@/components/mood/MoodHistory";
 import { MoodInsightCard } from "@/components/mood/InsightCard";
 import { useAppStore } from "@/stores/app-store";
 import { useState } from "react";
+
+const MoodHistory = dynamic(
+  () => import("@/components/mood/MoodHistory").then((m) => m.MoodHistory),
+  { loading: () => <div className="h-64 bg-neutral-100 rounded-xl animate-pulse" /> }
+);
 
 export default function MoodPage() {
   const { todayMood, setTodayMood } = useAppStore();
