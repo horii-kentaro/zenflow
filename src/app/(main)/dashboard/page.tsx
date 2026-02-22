@@ -6,7 +6,10 @@ import { MoodMiniChart } from "@/components/dashboard/MoodMiniChart";
 import { InsightCard } from "@/components/dashboard/InsightCard";
 import { PremiumTeaser } from "@/components/dashboard/PremiumTeaser";
 
-export const metadata = { title: "ダッシュボード - Zenflow" };
+export const metadata = {
+  title: "ダッシュボード",
+  description: "今日の気分チェックイン、ストリーク、ウィークリーサマリーを確認しましょう。",
+};
 
 export default function DashboardPage() {
   return (

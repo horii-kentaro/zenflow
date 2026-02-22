@@ -1,6 +1,9 @@
 import { LoginForm } from "@/components/auth/LoginForm";
 
-export const metadata = { title: "ログイン - Zenflow" };
+export const metadata = {
+  title: "ログイン",
+  description: "Zenflowにログインして、今日のセルフケアルーティンを始めましょう。",
+};
 
 export default function LoginPage() {
   return (

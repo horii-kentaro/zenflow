@@ -1,6 +1,9 @@
 import { SignupForm } from "@/components/auth/SignupForm";
 
-export const metadata = { title: "新規登録 - Zenflow" };
+export const metadata = {
+  title: "新規登録",
+  description: "Zenflowに無料登録して、AIがパーソナライズするセルフケアルーティンを体験しましょう。",
+};
 
 export default function SignupPage() {
   return (

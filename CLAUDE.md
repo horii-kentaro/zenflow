@@ -175,13 +175,13 @@ src/
 - [x] 自動デプロイパイプライン（Vercel or Docker）
 - [x] pre-commitフック（husky + lint-staged）
 
-### 10. SEO（次に着手）
-- [ ] robots.txt作成
-- [ ] sitemap.xml生成
-- [ ] OGPタグ（Open Graph）設定
-- [ ] 全ページのメタデータ設定
+### 10. SEO（完了）
+- [x] robots.txt作成
+- [x] sitemap.xml生成
+- [x] OGPタグ（Open Graph）設定
+- [x] 全ページのメタデータ設定
 
-### 11. アクセシビリティ
+### 11. アクセシビリティ（次に着手）
 - [ ] aria-label追加（アイコンボタン、ナビ、ローディング）
 - [ ] モーダルのフォーカストラップ
 - [ ] キーボードナビゲーション対応

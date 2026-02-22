@@ -17,9 +17,31 @@ const notoSansJP = Noto_Sans_JP({
   weight: ["400", "500", "600", "700"],
 });
 
+const siteUrl = process.env.AUTH_URL || "https://zenflow.app";
+
 export const metadata: Metadata = {
-  title: "Zenflow - AIウェルネスコーチ",
-  description: "毎日5分のセルフケアルーティンで、心と体の調和を。AIがあなたに寄り添うパーソナルウェルネスコーチ。",
+  title: {
+    default: "Zenflow - AIウェルネスコーチ",
+    template: "%s - Zenflow",
+  },
+  description:
+    "毎日5分のセルフケアルーティンで、心と体の調和を。AIがあなたに寄り添うパーソナルウェルネスコーチ。",
+  metadataBase: new URL(siteUrl),
+  openGraph: {
+    type: "website",
+    locale: "ja_JP",
+    url: siteUrl,
+    siteName: "Zenflow",
+    title: "Zenflow - AIウェルネスコーチ",
+    description:
+      "毎日5分のセルフケアルーティンで、心と体の調和を。AIがあなたに寄り添うパーソナルウェルネスコーチ。",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Zenflow - AIウェルネスコーチ",
+    description:
+      "毎日5分のセルフケアルーティンで、心と体の調和を。AIがあなたに寄り添うパーソナルウェルネスコーチ。",
+  },
 };
 
 export default function RootLayout({

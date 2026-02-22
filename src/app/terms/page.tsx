@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "利用規約 - Zenflow",
+  title: "利用規約",
+  description: "Zenflowの利用規約。サービスのご利用にあたりご確認ください。",
 };
 
 export default function TermsPage() {
