@@ -12,7 +12,8 @@ const envSchema = z.object({
     .string()
     .min(1, "AUTH_SECRET is required")
     .refine(
-      (val) => !val.startsWith("development-"),
+      (val) =>
+        process.env.NODE_ENV === "development" || !val.startsWith("development-"),
       "AUTH_SECRET must not use the default development value in production"
     ),
   AUTH_URL: z.string().url("AUTH_URL must be a valid URL"),
@@ -23,6 +24,8 @@ const envSchema = z.object({
       (val) => val.startsWith("sk-ant-"),
       "ANTHROPIC_API_KEY must be a valid Anthropic API key (starts with sk-ant-)"
     ),
+  // Supabase直接接続URL（マイグレーション用、本番時に必要）
+  DIRECT_URL: z.string().optional(),
   // Stripe（決済機能利用時に必要）
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_PRICE_ID: z.string().optional(),
