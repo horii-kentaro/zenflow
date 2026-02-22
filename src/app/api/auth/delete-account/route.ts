@@ -1,9 +1,8 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-helpers";
 import bcrypt from "bcryptjs";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
-import { validationError, notFoundError, internalError } from "@/lib/api-error";
+import { apiSuccess, validationError, notFoundError, internalError } from "@/lib/api-error";
 import { withLogging } from "@/lib/logger";
 
 export const DELETE = withLogging(async function DELETE(request: Request) {
@@ -35,10 +34,7 @@ export const DELETE = withLogging(async function DELETE(request: Request) {
     // JournalMessage, SelfcareCompletion, StreakData, トークン）も全て削除される
     await prisma.user.delete({ where: { id: userId } });
 
-    return NextResponse.json({
-      success: true,
-      message: "アカウントとすべての関連データが削除されました。",
-    });
+    return apiSuccess({ message: "アカウントとすべての関連データが削除されました。" });
   } catch {
     return internalError("アカウントの削除に失敗しました");
   }

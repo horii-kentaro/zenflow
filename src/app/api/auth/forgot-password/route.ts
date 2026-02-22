@@ -1,10 +1,9 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { forgotPasswordSchema } from "@/lib/validations";
 import { createPasswordResetToken } from "@/lib/tokens";
 import { sendPasswordResetEmail } from "@/lib/mail";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
-import { validationError, internalError } from "@/lib/api-error";
+import { apiSuccess, validationError, internalError } from "@/lib/api-error";
 import { withLogging } from "@/lib/logger";
 
 export const POST = withLogging(async function POST(request: Request) {
@@ -28,10 +27,7 @@ export const POST = withLogging(async function POST(request: Request) {
       await sendPasswordResetEmail(email, token);
     }
 
-    return NextResponse.json({
-      success: true,
-      message: "パスワードリセットのメールを送信しました。メールをご確認ください。",
-    });
+    return apiSuccess({ message: "パスワードリセットのメールを送信しました。メールをご確認ください。" });
   } catch {
     return internalError("パスワードリセットメールの送信に失敗しました");
   }

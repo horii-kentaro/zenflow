@@ -30,7 +30,7 @@ export function SignupForm() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "登録に失敗しました");
+        setError(data.error?.message || "登録に失敗しました");
         return;
       }
 

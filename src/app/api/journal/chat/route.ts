@@ -5,6 +5,7 @@ import { journalChatSchema } from "@/lib/validations";
 import { JOURNAL_SYSTEM_PROMPT, SENTIMENT_SYSTEM_PROMPT } from "@/lib/prompts";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { validationError, notFoundError, internalError } from "@/lib/api-error";
+import { logger } from "@/lib/logger";
 
 export async function POST(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.ai, "journal-chat");
@@ -94,7 +95,7 @@ export async function POST(request: Request) {
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`));
           controller.close();
         } catch (e) {
-          console.error("Stream error:", e);
+          logger.error("Stream error", { err: String(e) });
           controller.enqueue(
             encoder.encode(`data: ${JSON.stringify({ error: "応答の生成に失敗しました" })}\n\n`)
           );
@@ -144,6 +145,6 @@ async function runSentimentAnalysis(journalId: string, messages: { role: string;
       });
     }
   } catch (e) {
-    console.error("Sentiment analysis error:", e);
+    logger.error("Sentiment analysis error", { err: String(e) });
   }
 }

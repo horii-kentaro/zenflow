@@ -26,7 +26,7 @@ export default function ForgotPasswordPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "送信に失敗しました");
+        setError(data.error?.message || "送信に失敗しました");
         return;
       }
 

@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-helpers";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { notFoundError, internalError } from "@/lib/api-error";
+import { withLogging } from "@/lib/logger";
 
-export async function GET(request: Request) {
+export const GET = withLogging(async function GET(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.auth, "export-data");
   if (rateLimitResponse) return rateLimitResponse;
 
@@ -74,7 +76,7 @@ export async function GET(request: Request) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: "ユーザーが見つかりません" }, { status: 404 });
+      return notFoundError("ユーザーが見つかりません");
     }
 
     const exportData = {
@@ -99,9 +101,6 @@ export async function GET(request: Request) {
       },
     });
   } catch {
-    return NextResponse.json(
-      { error: "データのエクスポートに失敗しました" },
-      { status: 500 }
-    );
+    return internalError("データのエクスポートに失敗しました");
   }
-}
+});

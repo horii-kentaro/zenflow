@@ -81,7 +81,7 @@ export default function SettingsPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setPasswordError(data.error || "パスワードの変更に失敗しました");
+        setPasswordError(data.error?.message || "パスワードの変更に失敗しました");
         return;
       }
 
@@ -111,7 +111,7 @@ export default function SettingsPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setDeleteError(data.error || "削除に失敗しました");
+        setDeleteError(data.error?.message || "削除に失敗しました");
         return;
       }
 

@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
 import Stripe from "stripe";
 import { validationError, internalError } from "@/lib/api-error";
-import { withLogging } from "@/lib/logger";
+import { logger, withLogging } from "@/lib/logger";
 
 export const POST = withLogging(async function POST(request: Request) {
   const body = await request.text();
@@ -22,7 +22,7 @@ export const POST = withLogging(async function POST(request: Request) {
       process.env.STRIPE_WEBHOOK_SECRET!
     );
   } catch (err) {
-    console.error("Webhook signature verification failed:", err);
+    logger.error("Webhook signature verification failed", { err: String(err) });
     return validationError("Invalid signature");
   }
 
@@ -52,7 +52,7 @@ export const POST = withLogging(async function POST(request: Request) {
 
     return NextResponse.json({ received: true });
   } catch (e) {
-    console.error("Webhook handler error:", e);
+    logger.error("Webhook handler error", { err: String(e) });
     return internalError("Webhook handler failed");
   }
 });
@@ -66,7 +66,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   });
 
   if (!sub) {
-    console.error("Subscription not found for customer:", customerId);
+    logger.error("Subscription not found for customer", { customerId });
     return;
   }
 

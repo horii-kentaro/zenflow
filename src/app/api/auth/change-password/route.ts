@@ -1,10 +1,9 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-helpers";
 import { changePasswordSchema } from "@/lib/validations";
 import bcrypt from "bcryptjs";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
-import { validationError, notFoundError, internalError } from "@/lib/api-error";
+import { apiSuccess, validationError, notFoundError, internalError } from "@/lib/api-error";
 import { withLogging } from "@/lib/logger";
 
 export const POST = withLogging(async function POST(request: Request) {
@@ -40,10 +39,7 @@ export const POST = withLogging(async function POST(request: Request) {
       data: { hashedPassword },
     });
 
-    return NextResponse.json({
-      success: true,
-      message: "パスワードが変更されました。",
-    });
+    return apiSuccess({ message: "パスワードが変更されました。" });
   } catch {
     return internalError("パスワードの変更に失敗しました");
   }

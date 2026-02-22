@@ -1,7 +1,6 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
-import { validationError, internalError } from "@/lib/api-error";
+import { apiSuccess, validationError, internalError } from "@/lib/api-error";
 import { withLogging } from "@/lib/logger";
 
 export const GET = withLogging(async function GET(request: Request) {
@@ -34,10 +33,7 @@ export const GET = withLogging(async function GET(request: Request) {
       }),
     ]);
 
-    return NextResponse.json({
-      success: true,
-      message: "メールアドレスが確認されました。",
-    });
+    return apiSuccess({ message: "メールアドレスが確認されました。" });
   } catch {
     return internalError("メールの確認に失敗しました");
   }

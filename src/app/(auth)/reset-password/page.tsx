@@ -50,7 +50,7 @@ function ResetPasswordForm() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "リセットに失敗しました");
+        setError(data.error?.message || "リセットに失敗しました");
         return;
       }
 

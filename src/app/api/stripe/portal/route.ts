@@ -3,7 +3,7 @@ import { requireAuth } from "@/lib/auth-helpers";
 import { getStripe } from "@/lib/stripe";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { apiSuccess, validationError, internalError } from "@/lib/api-error";
-import { withLogging } from "@/lib/logger";
+import { logger, withLogging } from "@/lib/logger";
 
 export const POST = withLogging(async function POST(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.api, "stripe-portal");
@@ -30,7 +30,7 @@ export const POST = withLogging(async function POST(request: Request) {
 
     return apiSuccess({ url: session.url });
   } catch (e) {
-    console.error("Stripe portal error:", e);
+    logger.error("Stripe portal error", { err: String(e) });
     return internalError("ポータルセッションの作成に失敗しました");
   }
 });

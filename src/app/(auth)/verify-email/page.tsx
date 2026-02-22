@@ -9,15 +9,11 @@ function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
 
-  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
-  const [message, setMessage] = useState("");
+  const [status, setStatus] = useState<"loading" | "success" | "error">(token ? "loading" : "error");
+  const [message, setMessage] = useState(token ? "" : "無効なリンクです。");
 
   useEffect(() => {
-    if (!token) {
-      setStatus("error");
-      setMessage("無効なリンクです。");
-      return;
-    }
+    if (!token) return;
 
     fetch(`/api/auth/verify-email?token=${token}`)
       .then((res) => res.json())
@@ -27,7 +23,7 @@ function VerifyEmailContent() {
           setMessage("メールアドレスが確認されました。");
         } else {
           setStatus("error");
-          setMessage(data.error || "確認に失敗しました。");
+          setMessage(data.error?.message || "確認に失敗しました。");
         }
       })
       .catch(() => {

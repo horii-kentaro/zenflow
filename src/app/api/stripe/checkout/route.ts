@@ -3,7 +3,7 @@ import { requireAuth } from "@/lib/auth-helpers";
 import { getStripe, getStripePriceId } from "@/lib/stripe";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { apiSuccess, notFoundError, internalError } from "@/lib/api-error";
-import { withLogging } from "@/lib/logger";
+import { logger, withLogging } from "@/lib/logger";
 
 export const POST = withLogging(async function POST(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.api, "stripe-checkout");
@@ -64,7 +64,7 @@ export const POST = withLogging(async function POST(request: Request) {
 
     return apiSuccess({ url: session.url });
   } catch (e) {
-    console.error("Stripe checkout error:", e);
+    logger.error("Stripe checkout error", { err: String(e) });
     return internalError("チェックアウトセッションの作成に失敗しました");
   }
 });

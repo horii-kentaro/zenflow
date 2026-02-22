@@ -1,9 +1,8 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { resetPasswordSchema } from "@/lib/validations";
 import bcrypt from "bcryptjs";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
-import { validationError, internalError } from "@/lib/api-error";
+import { apiSuccess, validationError, internalError } from "@/lib/api-error";
 import { withLogging } from "@/lib/logger";
 
 export const POST = withLogging(async function POST(request: Request) {
@@ -41,10 +40,7 @@ export const POST = withLogging(async function POST(request: Request) {
       }),
     ]);
 
-    return NextResponse.json({
-      success: true,
-      message: "パスワードが正常にリセットされました。",
-    });
+    return apiSuccess({ message: "パスワードが正常にリセットされました。" });
   } catch {
     return internalError("パスワードのリセットに失敗しました");
   }
