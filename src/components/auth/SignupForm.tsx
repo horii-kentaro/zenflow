@@ -76,7 +76,7 @@ export function SignupForm() {
         id="password"
         label="パスワード"
         type="password"
-        placeholder="8文字以上"
+        placeholder="英大小文字・数字・記号を含む8文字以上"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         required
