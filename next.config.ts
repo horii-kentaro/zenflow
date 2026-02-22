@@ -41,11 +41,34 @@ const securityHeaders = [
   },
 ];
 
+const corsHeaders = [
+  {
+    key: "Access-Control-Allow-Origin",
+    value: process.env.AUTH_URL || "http://localhost:3000",
+  },
+  {
+    key: "Access-Control-Allow-Methods",
+    value: "GET, POST, DELETE, OPTIONS",
+  },
+  {
+    key: "Access-Control-Allow-Headers",
+    value: "Content-Type, Authorization",
+  },
+  {
+    key: "Access-Control-Max-Age",
+    value: "86400",
+  },
+];
+
 const nextConfig: NextConfig = {
   headers: async () => [
     {
       source: "/(.*)",
       headers: securityHeaders,
+    },
+    {
+      source: "/api/(.*)",
+      headers: corsHeaders,
     },
   ],
 };
