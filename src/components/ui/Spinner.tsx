@@ -17,6 +17,8 @@ export function Spinner({ size = "md", className }: SpinnerProps) {
       className={cn("animate-spin text-primary-600", sizes[size], className)}
       viewBox="0 0 24 24"
       fill="none"
+      role="status"
+      aria-label="読み込み中"
     >
       <circle
         className="opacity-25"

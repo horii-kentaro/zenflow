@@ -82,7 +82,7 @@ export function SignupForm() {
         required
         minLength={8}
       />
-      {error && <p className="text-sm text-red-500">{error}</p>}
+      {error && <p className="text-sm text-red-500" role="alert">{error}</p>}
       <Button type="submit" className="w-full" loading={loading}>
         無料で始める
       </Button>

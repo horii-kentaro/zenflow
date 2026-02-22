@@ -22,7 +22,7 @@ export function FeatureGate({ feature, children, fallback }: FeatureGateProps) {
 
   return (
     <>
-      <div onClick={() => setShowModal(true)} className="cursor-pointer">
+      <div role="button" tabIndex={0} onClick={() => setShowModal(true)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setShowModal(true); } }} aria-label="プレミアム機能を解放する" className="cursor-pointer">
         {fallback || (
           <div className="relative">
             <div className="opacity-50 pointer-events-none">{children}</div>

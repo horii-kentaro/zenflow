@@ -59,7 +59,7 @@ export function LoginForm() {
         onChange={(e) => setPassword(e.target.value)}
         required
       />
-      {error && <p className="text-sm text-red-500">{error}</p>}
+      {error && <p className="text-sm text-red-500" role="alert">{error}</p>}
       <div className="text-right">
         <Link href="/forgot-password" className="text-xs text-primary-600 hover:underline">
           パスワードを忘れた方

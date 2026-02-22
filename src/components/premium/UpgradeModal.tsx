@@ -31,10 +31,10 @@ export function UpgradeModal({ open, onClose, message }: UpgradeModalProps) {
   };
 
   return (
-    <Modal open={open} onClose={onClose}>
+    <Modal open={open} onClose={onClose} labelledBy="upgrade-modal-title">
       <div className="text-center">
         <div className="text-4xl mb-3">&#10024;</div>
-        <h2 className="text-xl font-bold text-neutral-900 mb-2">Proにアップグレード</h2>
+        <h2 id="upgrade-modal-title" className="text-xl font-bold text-neutral-900 mb-2">Proにアップグレード</h2>
         <p className="text-sm text-neutral-500 mb-4">
           {message || "この機能はProプランでご利用いただけます"}
         </p>
@@ -49,7 +49,7 @@ export function UpgradeModal({ open, onClose, message }: UpgradeModalProps) {
             "月3回のストリークフリーズ",
           ].map((f, i) => (
             <li key={i} className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-primary-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-4 h-4 text-primary-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
               {f}

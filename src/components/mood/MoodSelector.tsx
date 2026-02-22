@@ -28,19 +28,21 @@ export function MoodSelector({ onSubmit, initialScore }: MoodSelectorProps) {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-5 gap-3">
+      <div className="grid grid-cols-5 gap-3" role="group" aria-label="気分を選択">
         {MOOD_OPTIONS.map((mood) => (
           <button
             key={mood.score}
             onClick={() => setSelected(mood.score)}
+            aria-pressed={selected === mood.score}
+            aria-label={mood.labelJa}
             className={cn(
-              "flex flex-col items-center gap-2 py-4 rounded-xl transition-all",
+              "flex flex-col items-center gap-2 py-4 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2",
               selected === mood.score
                 ? "bg-primary-50 border-2 border-primary-400 scale-105 shadow-sm"
                 : "bg-white border border-neutral-200 hover:border-primary-300"
             )}
           >
-            <span className="text-3xl">{mood.emoji}</span>
+            <span className="text-3xl" aria-hidden="true">{mood.emoji}</span>
             <span className="text-xs font-medium text-neutral-600">{mood.labelJa}</span>
           </button>
         ))}

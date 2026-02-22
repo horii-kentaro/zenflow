@@ -59,19 +59,21 @@ export function MoodCheckIn() {
   return (
     <div className="bg-white rounded-xl border border-neutral-200 p-6 shadow-sm">
       <p className="text-sm font-medium text-neutral-700 mb-4">今日の気分はどうですか？</p>
-      <div className="grid grid-cols-5 gap-3">
+      <div className="grid grid-cols-5 gap-3" role="group" aria-label="気分を選択">
         {MOOD_OPTIONS.map((mood) => (
           <button
             key={mood.score}
             onClick={() => handleSelect(mood.score)}
+            aria-pressed={selectedScore === mood.score}
+            aria-label={mood.labelJa}
             className={cn(
-              "flex flex-col items-center gap-1 py-3 rounded-lg transition-all text-center",
+              "flex flex-col items-center gap-1 py-3 rounded-lg transition-all text-center focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2",
               selectedScore === mood.score
                 ? "bg-primary-50 border-2 border-primary-400 scale-105 shadow-sm"
                 : "bg-neutral-50 border border-neutral-200 hover:border-primary-300 hover:bg-primary-50/50"
             )}
           >
-            <span className="text-2xl">{mood.emoji}</span>
+            <span className="text-2xl" aria-hidden="true">{mood.emoji}</span>
             <span className="text-xs text-neutral-600">{mood.labelJa}</span>
           </button>
         ))}

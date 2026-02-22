@@ -16,7 +16,7 @@ export function MobileNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="lg:hidden fixed bottom-0 inset-x-0 bg-white border-t border-neutral-200 z-40">
+    <nav aria-label="モバイルナビゲーション" className="lg:hidden fixed bottom-0 inset-x-0 bg-white border-t border-neutral-200 z-40">
       <div className="flex justify-around items-center h-16">
         {items.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
@@ -29,7 +29,7 @@ export function MobileNav() {
                 isActive ? "text-primary-700" : "text-neutral-400"
               )}
             >
-              <span className="text-xl">{item.icon}</span>
+              <span className="text-xl" aria-hidden="true">{item.icon}</span>
               {item.label}
             </Link>
           );
