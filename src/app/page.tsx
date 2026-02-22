@@ -355,9 +355,9 @@ function Footer() {
           © 2026 Zenflow. All rights reserved.
         </div>
         <div className="flex gap-6 text-sm text-neutral-500">
-          <a href="#" className="hover:text-neutral-700 transition-colors">利用規約</a>
-          <a href="#" className="hover:text-neutral-700 transition-colors">プライバシーポリシー</a>
-          <a href="#" className="hover:text-neutral-700 transition-colors">お問い合わせ</a>
+          <a href="/terms" className="hover:text-neutral-700 transition-colors">利用規約</a>
+          <a href="/privacy" className="hover:text-neutral-700 transition-colors">プライバシーポリシー</a>
+          <a href="/tokushoho" className="hover:text-neutral-700 transition-colors">特定商取引法</a>
         </div>
       </div>
     </footer>

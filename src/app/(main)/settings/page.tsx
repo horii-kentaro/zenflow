@@ -242,6 +242,25 @@ export default function SettingsPage() {
         </Card>
       )}
 
+      {/* データエクスポート */}
+      <Card>
+        <CardHeader>
+          <CardTitle>データエクスポート</CardTitle>
+        </CardHeader>
+        <p className="text-sm text-neutral-500 mb-4">
+          あなたのすべてのデータ（気分記録・ジャーナル・セルフケア履歴）をJSON形式でダウンロードできます。
+        </p>
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => {
+            window.location.href = "/api/auth/export-data";
+          }}
+        >
+          データをエクスポート
+        </Button>
+      </Card>
+
       {/* パスワード変更 */}
       <Card>
         <CardHeader>
