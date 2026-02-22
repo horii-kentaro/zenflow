@@ -28,3 +28,17 @@ export const journalChatSchema = z.object({
   journalId: z.string(),
   message: z.string().min(1).max(2000),
 });
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().email("有効なメールアドレスを入力してください"),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1, "トークンが必要です"),
+  password: passwordSchema,
+});
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, "現在のパスワードを入力してください"),
+  newPassword: passwordSchema,
+});

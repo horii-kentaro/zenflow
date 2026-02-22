@@ -60,6 +60,11 @@ export function LoginForm() {
         required
       />
       {error && <p className="text-sm text-red-500">{error}</p>}
+      <div className="text-right">
+        <Link href="/forgot-password" className="text-xs text-primary-600 hover:underline">
+          パスワードを忘れた方
+        </Link>
+      </div>
       <Button type="submit" className="w-full" loading={loading}>
         ログイン
       </Button>

@@ -3,6 +3,8 @@ import bcrypt from "bcryptjs";
 import { signupSchema } from "@/lib/validations";
 import { NextResponse } from "next/server";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { createVerificationToken } from "@/lib/tokens";
+import { sendVerificationEmail } from "@/lib/mail";
 
 export async function POST(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.auth, "signup");
@@ -44,6 +46,10 @@ export async function POST(request: Request) {
         },
       },
     });
+
+    // メール認証トークンを送信
+    const token = await createVerificationToken(user.id);
+    await sendVerificationEmail(email, token);
 
     return NextResponse.json({ success: true, userId: user.id });
   } catch {

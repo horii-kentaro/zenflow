@@ -3,6 +3,7 @@
 import { useSession, signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { useAppStore } from "@/stores/app-store";
@@ -16,6 +17,20 @@ export default function SettingsPage() {
     longestStreak: number;
   } | null>(null);
 
+  // パスワード変更
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordSuccess, setPasswordSuccess] = useState("");
+  const [passwordLoading, setPasswordLoading] = useState(false);
+
+  // アカウント削除
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteError, setDeleteError] = useState("");
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
   useEffect(() => {
     fetch("/api/subscription")
       .then((r) => r.json())
@@ -27,6 +42,69 @@ export default function SettingsPage() {
       .then((d) => { if (d.data) setStreakInfo(d.data); })
       .catch(console.error);
   }, [setPlan]);
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError("");
+    setPasswordSuccess("");
+
+    if (newPassword !== confirmNewPassword) {
+      setPasswordError("新しいパスワードが一致しません");
+      return;
+    }
+
+    setPasswordLoading(true);
+    try {
+      const res = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setPasswordError(data.error || "パスワードの変更に失敗しました");
+        return;
+      }
+
+      setPasswordSuccess("パスワードが変更されました");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmNewPassword("");
+    } catch {
+      setPasswordError("パスワードの変更に失敗しました");
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
+  const handleDeleteAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setDeleteError("");
+    setDeleteLoading(true);
+
+    try {
+      const res = await fetch("/api/auth/delete-account", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: deletePassword }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setDeleteError(data.error || "削除に失敗しました");
+        return;
+      }
+
+      signOut({ callbackUrl: "/" });
+    } catch {
+      setDeleteError("削除に失敗しました");
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -90,6 +168,47 @@ export default function SettingsPage() {
         </Card>
       )}
 
+      {/* パスワード変更 */}
+      <Card>
+        <CardHeader>
+          <CardTitle>パスワード変更</CardTitle>
+        </CardHeader>
+        <form onSubmit={handleChangePassword} className="space-y-3">
+          <Input
+            id="currentPassword"
+            label="現在のパスワード"
+            type="password"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            required
+          />
+          <Input
+            id="newPassword"
+            label="新しいパスワード"
+            type="password"
+            placeholder="英大小文字・数字・記号を含む8文字以上"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            required
+            minLength={8}
+          />
+          <Input
+            id="confirmNewPassword"
+            label="新しいパスワード（確認）"
+            type="password"
+            value={confirmNewPassword}
+            onChange={(e) => setConfirmNewPassword(e.target.value)}
+            required
+            minLength={8}
+          />
+          {passwordError && <p className="text-sm text-red-500">{passwordError}</p>}
+          {passwordSuccess && <p className="text-sm text-green-600">{passwordSuccess}</p>}
+          <Button type="submit" variant="secondary" size="sm" loading={passwordLoading}>
+            パスワードを変更
+          </Button>
+        </form>
+      </Card>
+
       {/* ログアウト */}
       <Card>
         <Button
@@ -98,6 +217,62 @@ export default function SettingsPage() {
         >
           ログアウト
         </Button>
+      </Card>
+
+      {/* アカウント削除 */}
+      <Card>
+        <CardHeader>
+          <CardTitle>アカウント削除</CardTitle>
+        </CardHeader>
+        <p className="text-sm text-neutral-500 mb-4">
+          アカウントを削除すると、すべてのデータ（気分記録・ジャーナル・セルフケア履歴・ストリーク）が完全に削除されます。この操作は取り消せません。
+        </p>
+        {!showDeleteConfirm ? (
+          <Button
+            variant="danger"
+            size="sm"
+            onClick={() => setShowDeleteConfirm(true)}
+          >
+            アカウントを削除する
+          </Button>
+        ) : (
+          <form onSubmit={handleDeleteAccount} className="space-y-3">
+            <div className="rounded-lg bg-red-50 border border-red-200 p-3">
+              <p className="text-sm font-medium text-red-800">
+                本当にアカウントを削除しますか？
+              </p>
+              <p className="text-xs text-red-600 mt-1">
+                確認のため、パスワードを入力してください。
+              </p>
+            </div>
+            <Input
+              id="deletePassword"
+              label="パスワード"
+              type="password"
+              value={deletePassword}
+              onChange={(e) => setDeletePassword(e.target.value)}
+              required
+            />
+            {deleteError && <p className="text-sm text-red-500">{deleteError}</p>}
+            <div className="flex gap-2">
+              <Button type="submit" variant="danger" size="sm" loading={deleteLoading}>
+                完全に削除する
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setDeletePassword("");
+                  setDeleteError("");
+                }}
+              >
+                キャンセル
+              </Button>
+            </div>
+          </form>
+        )}
       </Card>
     </div>
   );
