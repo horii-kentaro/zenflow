@@ -5,8 +5,9 @@ import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { createVerificationToken } from "@/lib/tokens";
 import { sendVerificationEmail } from "@/lib/mail";
 import { apiSuccess, validationError, conflictError, internalError } from "@/lib/api-error";
+import { withLogging } from "@/lib/logger";
 
-export async function POST(request: Request) {
+export const POST = withLogging(async function POST(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.auth, "signup");
   if (rateLimitResponse) return rateLimitResponse;
 
@@ -49,4 +50,4 @@ export async function POST(request: Request) {
   } catch {
     return internalError("アカウントの作成に失敗しました");
   }
-}
+});

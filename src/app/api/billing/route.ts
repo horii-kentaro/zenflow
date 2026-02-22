@@ -2,8 +2,9 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-helpers";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { apiSuccess, internalError } from "@/lib/api-error";
+import { withLogging } from "@/lib/logger";
 
-export async function GET(request: Request) {
+export const GET = withLogging(async function GET(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.api, "billing");
   if (rateLimitResponse) return rateLimitResponse;
 
@@ -29,4 +30,4 @@ export async function GET(request: Request) {
   } catch {
     return internalError("請求履歴の取得に失敗しました");
   }
-}
+});

@@ -2,8 +2,9 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth, getUserPlan } from "@/lib/auth-helpers";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { apiSuccess } from "@/lib/api-error";
+import { withLogging } from "@/lib/logger";
 
-export async function GET(request: Request) {
+export const GET = withLogging(async function GET(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.api, "mood-insights");
   if (rateLimitResponse) return rateLimitResponse;
   const { error, userId } = await requireAuth();
@@ -37,4 +38,4 @@ export async function GET(request: Request) {
   }
 
   return apiSuccess({ insight, averageScore: avgScore, recentAverage: recentAvg, premium: plan === "premium" });
-}
+});

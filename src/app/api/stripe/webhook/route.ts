@@ -3,8 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
 import Stripe from "stripe";
 import { validationError, internalError } from "@/lib/api-error";
+import { withLogging } from "@/lib/logger";
 
-export async function POST(request: Request) {
+export const POST = withLogging(async function POST(request: Request) {
   const body = await request.text();
   const signature = request.headers.get("stripe-signature");
 
@@ -54,7 +55,7 @@ export async function POST(request: Request) {
     console.error("Webhook handler error:", e);
     return internalError("Webhook handler failed");
   }
-}
+});
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const customerId = session.customer as string;

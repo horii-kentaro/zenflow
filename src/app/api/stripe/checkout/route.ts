@@ -3,8 +3,9 @@ import { requireAuth } from "@/lib/auth-helpers";
 import { getStripe, getStripePriceId } from "@/lib/stripe";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { apiSuccess, notFoundError, internalError } from "@/lib/api-error";
+import { withLogging } from "@/lib/logger";
 
-export async function POST(request: Request) {
+export const POST = withLogging(async function POST(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.api, "stripe-checkout");
   if (rateLimitResponse) return rateLimitResponse;
 
@@ -66,4 +67,4 @@ export async function POST(request: Request) {
     console.error("Stripe checkout error:", e);
     return internalError("チェックアウトセッションの作成に失敗しました");
   }
-}
+});

@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { validationError, internalError } from "@/lib/api-error";
+import { withLogging } from "@/lib/logger";
 
-export async function GET(request: Request) {
+export const GET = withLogging(async function GET(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.auth, "verify-email");
   if (rateLimitResponse) return rateLimitResponse;
 
@@ -40,4 +41,4 @@ export async function GET(request: Request) {
   } catch {
     return internalError("メールの確認に失敗しました");
   }
-}
+});

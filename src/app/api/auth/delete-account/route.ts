@@ -4,8 +4,9 @@ import { requireAuth } from "@/lib/auth-helpers";
 import bcrypt from "bcryptjs";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { validationError, notFoundError, internalError } from "@/lib/api-error";
+import { withLogging } from "@/lib/logger";
 
-export async function DELETE(request: Request) {
+export const DELETE = withLogging(async function DELETE(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.auth, "delete-account");
   if (rateLimitResponse) return rateLimitResponse;
 
@@ -41,4 +42,4 @@ export async function DELETE(request: Request) {
   } catch {
     return internalError("アカウントの削除に失敗しました");
   }
-}
+});

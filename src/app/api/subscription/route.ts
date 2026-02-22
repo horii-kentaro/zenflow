@@ -2,8 +2,9 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-helpers";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { apiSuccess, validationError, internalError } from "@/lib/api-error";
+import { withLogging } from "@/lib/logger";
 
-export async function GET(request: Request) {
+export const GET = withLogging(async function GET(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.api, "subscription");
   if (rateLimitResponse) return rateLimitResponse;
   const { error, userId } = await requireAuth();
@@ -14,9 +15,9 @@ export async function GET(request: Request) {
   });
 
   return apiSuccess(sub || { plan: "free", startDate: new Date().toISOString() });
-}
+});
 
-export async function POST(request: Request) {
+export const POST = withLogging(async function POST(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.api, "subscription");
   if (rateLimitResponse) return rateLimitResponse;
 
@@ -49,4 +50,4 @@ export async function POST(request: Request) {
   } catch {
     return internalError("プランの変更に失敗しました");
   }
-}
+});

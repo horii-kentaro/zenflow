@@ -3,8 +3,9 @@ import { requireAuth } from "@/lib/auth-helpers";
 import { getTodayDate } from "@/lib/utils";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { apiSuccess, internalError } from "@/lib/api-error";
+import { withLogging } from "@/lib/logger";
 
-export async function GET(request: Request) {
+export const GET = withLogging(async function GET(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.api, "journal");
   if (rateLimitResponse) return rateLimitResponse;
   const { error, userId } = await requireAuth();
@@ -22,9 +23,9 @@ export async function GET(request: Request) {
   });
 
   return apiSuccess(journals);
-}
+});
 
-export async function POST(request: Request) {
+export const POST = withLogging(async function POST(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.api, "journal");
   if (rateLimitResponse) return rateLimitResponse;
   const { error, userId } = await requireAuth();
@@ -42,4 +43,4 @@ export async function POST(request: Request) {
   } catch {
     return internalError("ジャーナルの作成に失敗しました");
   }
-}
+});

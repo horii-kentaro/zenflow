@@ -2,8 +2,9 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-helpers";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { apiSuccess, notFoundError } from "@/lib/api-error";
+import { withLogging } from "@/lib/logger";
 
-export async function GET(
+export const GET = withLogging(async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -27,9 +28,9 @@ export async function GET(
   }
 
   return apiSuccess(journal);
-}
+});
 
-export async function DELETE(
+export const DELETE = withLogging(async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -52,4 +53,4 @@ export async function DELETE(
   await prisma.journal.delete({ where: { id } });
 
   return apiSuccess(null);
-}
+});

@@ -4,8 +4,9 @@ import { updateStreak } from "@/lib/streak";
 import { getTodayDate } from "@/lib/utils";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { apiSuccess, internalError } from "@/lib/api-error";
+import { withLogging } from "@/lib/logger";
 
-export async function POST(request: Request) {
+export const POST = withLogging(async function POST(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.api, "selfcare-complete");
   if (rateLimitResponse) return rateLimitResponse;
 
@@ -33,4 +34,4 @@ export async function POST(request: Request) {
   } catch {
     return internalError("完了の記録に失敗しました");
   }
-}
+});

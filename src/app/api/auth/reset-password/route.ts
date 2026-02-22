@@ -4,8 +4,9 @@ import { resetPasswordSchema } from "@/lib/validations";
 import bcrypt from "bcryptjs";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { validationError, internalError } from "@/lib/api-error";
+import { withLogging } from "@/lib/logger";
 
-export async function POST(request: Request) {
+export const POST = withLogging(async function POST(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.auth, "reset-password");
   if (rateLimitResponse) return rateLimitResponse;
 
@@ -47,4 +48,4 @@ export async function POST(request: Request) {
   } catch {
     return internalError("パスワードのリセットに失敗しました");
   }
-}
+});

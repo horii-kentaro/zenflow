@@ -5,8 +5,9 @@ import { changePasswordSchema } from "@/lib/validations";
 import bcrypt from "bcryptjs";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { validationError, notFoundError, internalError } from "@/lib/api-error";
+import { withLogging } from "@/lib/logger";
 
-export async function POST(request: Request) {
+export const POST = withLogging(async function POST(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.auth, "change-password");
   if (rateLimitResponse) return rateLimitResponse;
 
@@ -46,4 +47,4 @@ export async function POST(request: Request) {
   } catch {
     return internalError("パスワードの変更に失敗しました");
   }
-}
+});

@@ -4,6 +4,7 @@ import { requireAuth } from "@/lib/auth-helpers";
 import { SELFCARE_SYSTEM_PROMPT, buildSelfcarePrompt } from "@/lib/prompts";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { apiSuccess } from "@/lib/api-error";
+import { withLogging } from "@/lib/logger";
 
 const FALLBACK_ROUTINE = {
   type: "breathing",
@@ -19,7 +20,7 @@ const FALLBACK_ROUTINE = {
   ],
 };
 
-export async function GET(request: Request) {
+export const GET = withLogging(async function GET(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.ai, "selfcare");
   if (rateLimitResponse) return rateLimitResponse;
 
@@ -64,4 +65,4 @@ export async function GET(request: Request) {
     console.error("Selfcare generation error:", e);
     return apiSuccess(FALLBACK_ROUTINE);
   }
-}
+});

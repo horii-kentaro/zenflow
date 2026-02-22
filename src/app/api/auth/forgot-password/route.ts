@@ -5,8 +5,9 @@ import { createPasswordResetToken } from "@/lib/tokens";
 import { sendPasswordResetEmail } from "@/lib/mail";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { validationError, internalError } from "@/lib/api-error";
+import { withLogging } from "@/lib/logger";
 
-export async function POST(request: Request) {
+export const POST = withLogging(async function POST(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.auth, "forgot-password");
   if (rateLimitResponse) return rateLimitResponse;
 
@@ -34,4 +35,4 @@ export async function POST(request: Request) {
   } catch {
     return internalError("パスワードリセットメールの送信に失敗しました");
   }
-}
+});

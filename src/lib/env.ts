@@ -27,6 +27,12 @@ const envSchema = z.object({
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_PRICE_ID: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  // Sentry（エラートラッキング、本番時に必要）
+  NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
+  SENTRY_ORG: z.string().optional(),
+  SENTRY_PROJECT: z.string().optional(),
+  // Google Analytics
+  NEXT_PUBLIC_GA_ID: z.string().optional(),
 });
 
 type Env = z.infer<typeof envSchema>;

@@ -2,8 +2,9 @@ import { requireAuth } from "@/lib/auth-helpers";
 import { checkFeatureAccess } from "@/lib/subscription";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { apiSuccess, validationError } from "@/lib/api-error";
+import { withLogging } from "@/lib/logger";
 
-export async function GET(request: Request) {
+export const GET = withLogging(async function GET(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.api, "subscription-check");
   if (rateLimitResponse) return rateLimitResponse;
   const { error, userId } = await requireAuth();
@@ -18,4 +19,4 @@ export async function GET(request: Request) {
 
   const result = await checkFeatureAccess(userId, feature);
   return apiSuccess(result);
-}
+});
