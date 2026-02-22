@@ -128,15 +128,15 @@ src/
 - [x] サブスクリプション自動更新・期限管理（Webhook経由）
 - [x] カスタマーポータルリンク（/api/stripe/portal）
 
-### 4. 法的対応（次に着手）
-- [ ] プライバシーポリシーページ作成
-- [ ] 利用規約ページ作成
-- [ ] 特定商取引法に基づく表記ページ作成
-- [ ] Cookie同意バナー
-- [ ] AI利用に関する説明の開示
-- [ ] データエクスポート機能（個人情報保護法対応）
+### 4. 法的対応（完了）
+- [x] プライバシーポリシーページ作成（/privacy）
+- [x] 利用規約ページ作成（/terms）
+- [x] 特定商取引法に基づく表記ページ作成（/tokushoho）
+- [x] Cookie同意バナー（ルートレイアウト、localStorage保持）
+- [x] AI利用に関する説明の開示（プライバシーポリシー内）
+- [x] データエクスポート機能（/api/auth/export-data、JSON形式）
 
-### 5. DB本番化
+### 5. DB本番化（次に着手）
 - [ ] PostgreSQL移行（schema.prisma修正、接続設定）
 - [ ] インデックス追加（User.email、MoodEntry.userId、Journal.userId/date等）
 - [ ] prisma migrateによるマイグレーション管理導入
