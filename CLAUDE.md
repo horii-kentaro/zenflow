@@ -120,15 +120,15 @@ src/
 - [x] アカウント削除機能（GDPR対応、関連データの完全削除）
 - [x] セッションタイムアウト設定（JWT maxAge 7日間）
 
-### 3. 決済統合（次に着手）
-- [ ] Stripe SDK導入・設定
-- [ ] Checkout Session作成API
-- [ ] Webhook受信エンドポイント（支払い完了 → plan更新）
-- [ ] 請求履歴の保存・表示
-- [ ] サブスクリプション自動更新・期限管理
-- [ ] カスタマーポータルリンク（Stripe）
+### 3. 決済統合（完了）
+- [x] Stripe SDK導入・設定（遅延初期化）
+- [x] Checkout Session作成API（/api/stripe/checkout）
+- [x] Webhook受信エンドポイント（checkout完了、invoice支払い、サブスク更新/削除）
+- [x] 請求履歴の保存・表示（BillingHistoryモデル、設定ページ）
+- [x] サブスクリプション自動更新・期限管理（Webhook経由）
+- [x] カスタマーポータルリンク（/api/stripe/portal）
 
-### 4. 法的対応
+### 4. 法的対応（次に着手）
 - [ ] プライバシーポリシーページ作成
 - [ ] 利用規約ページ作成
 - [ ] 特定商取引法に基づく表記ページ作成
