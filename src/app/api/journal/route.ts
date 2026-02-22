@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-helpers";
-import { getToday } from "@/lib/utils";
+import { getTodayDate } from "@/lib/utils";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 export async function GET(request: Request) {
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     const journal = await prisma.journal.create({
       data: {
         userId: userId,
-        date: getToday(),
+        date: getTodayDate(),
       },
     });
 

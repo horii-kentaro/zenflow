@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/prisma";
-import { getToday } from "@/lib/utils";
+import { getTodayDate, formatDate } from "@/lib/utils";
 
 export async function updateStreak(userId: string) {
-  const today = getToday();
+  const today = getTodayDate();
 
   const streakData = await prisma.streakData.upsert({
     where: { userId },
@@ -10,16 +10,15 @@ export async function updateStreak(userId: string) {
     update: {},
   });
 
-  if (streakData.lastActiveDate === today) {
+  if (streakData.lastActiveDate && formatDate(streakData.lastActiveDate) === formatDate(today)) {
     return streakData;
   }
 
-  const yesterday = new Date();
+  const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = yesterday.toISOString().split("T")[0];
 
   let newStreak = 1;
-  if (streakData.lastActiveDate === yesterdayStr) {
+  if (streakData.lastActiveDate && formatDate(streakData.lastActiveDate) === formatDate(yesterday)) {
     newStreak = streakData.currentStreak + 1;
   }
 
@@ -43,12 +42,15 @@ export async function getStreakData(userId: string) {
     });
   }
 
-  const today = getToday();
-  const yesterday = new Date();
+  const today = getTodayDate();
+  const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = yesterday.toISOString().split("T")[0];
 
-  if (data.lastActiveDate !== today && data.lastActiveDate !== yesterdayStr && data.currentStreak > 0) {
+  const todayStr = formatDate(today);
+  const yesterdayStr = formatDate(yesterday);
+  const lastActiveStr = data.lastActiveDate ? formatDate(data.lastActiveDate) : null;
+
+  if (lastActiveStr !== todayStr && lastActiveStr !== yesterdayStr && data.currentStreak > 0) {
     return prisma.streakData.update({
       where: { userId },
       data: { currentStreak: 0 },

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { MoodEntryData } from "@/types";
-import { getMoodEmoji } from "@/lib/utils";
+import { getMoodEmoji, formatDate } from "@/lib/utils";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 export function MoodHistory() {
@@ -18,7 +18,7 @@ export function MoodHistory() {
   }, []);
 
   const chartData = entries.map((e) => ({
-    date: e.date.slice(5),
+    date: formatDate(e.date).slice(5),
     score: e.score,
   }));
 
@@ -61,7 +61,7 @@ export function MoodHistory() {
               <div key={entry.id} className="flex items-center gap-3 py-2 border-b border-neutral-100 last:border-0">
                 <span className="text-xl">{getMoodEmoji(entry.score)}</span>
                 <div className="flex-1">
-                  <span className="text-sm text-neutral-700">{entry.date}</span>
+                  <span className="text-sm text-neutral-700">{formatDate(entry.date)}</span>
                   {entry.note && <p className="text-xs text-neutral-500 mt-0.5">{entry.note}</p>}
                 </div>
                 <span className="text-sm font-medium text-neutral-500">{entry.score}/5</span>

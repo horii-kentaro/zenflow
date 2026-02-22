@@ -8,7 +8,7 @@
 
 - **フレームワーク**: Next.js 16 (App Router) + TypeScript
 - **スタイル**: Tailwind CSS v4（@theme directive）
-- **DB**: Prisma 6 + SQLite（開発用）
+- **DB**: Prisma 6 + PostgreSQL（Docker Compose / 本番）
 - **認証**: NextAuth.js v5 beta（Credentials + JWT）
 - **AI**: Anthropic Claude API（claude-sonnet-4-5-20250514）
 - **チャート**: Recharts
@@ -21,18 +21,21 @@
 npm run dev          # 開発サーバー起動（localhost:3000）
 npm run build        # 本番ビルド
 npx prisma studio    # DB GUI
-npx prisma db push   # スキーマをDBに反映
+npx prisma migrate dev   # マイグレーション実行（開発）
+npx prisma migrate deploy # マイグレーション実行（本番）
+docker compose up -d     # ローカルPostgreSQL起動
 ```
 
 ## 環境変数（.env.local）
 
 ```
-DATABASE_URL="file:./dev.db"
+DATABASE_URL="postgresql://zenflow:zenflow_dev@localhost:5432/zenflow"
 AUTH_SECRET="(openssl rand -base64 32 で生成)"
 AUTH_URL="http://localhost:3000"
 ANTHROPIC_API_KEY="sk-ant-xxxxx"
 ```
 ※ Prisma CLIは.env.localを読めないため、.envにもDATABASE_URLを記載済み
+※ ローカル開発は `docker compose up -d` でPostgreSQLを起動してから使用
 
 ## ディレクトリ構造
 
@@ -98,6 +101,8 @@ src/
 - Next.js 16でmiddleware非推奨警告あり（proxy移行が必要）
 - ANTHROPIC_API_KEYにはダミー値が入っている（実キーに差し替え要）
 - `.env`と`.env.local`の両方が必要（Prisma CLI用とNext.js用）
+- 日付フィールドはDateTime @db.Date型（PostgreSQLのDATE型）。API応答ではISO文字列になるため、クライアント側ではformatDate()で"YYYY-MM-DD"に変換
+- ローカル開発にはDocker（PostgreSQL）が必要。`docker compose up -d`で起動
 
 ## 次回の作業指示
 
@@ -136,14 +141,14 @@ src/
 - [x] AI利用に関する説明の開示（プライバシーポリシー内）
 - [x] データエクスポート機能（/api/auth/export-data、JSON形式）
 
-### 5. DB本番化（次に着手）
-- [ ] PostgreSQL移行（schema.prisma修正、接続設定）
-- [ ] インデックス追加（User.email、MoodEntry.userId、Journal.userId/date等）
-- [ ] prisma migrateによるマイグレーション管理導入
-- [ ] コネクションプーリング設定
-- [ ] 日付フィールドのString→DateTime型修正
+### 5. DB本番化（完了）
+- [x] PostgreSQL移行（provider変更、docker-compose.yml、接続設定）
+- [x] インデックス追加（全テーブルにuserId、date等のインデックス追加）
+- [x] prisma migrateによるマイグレーション管理導入（0001_init作成）
+- [x] コネクションプーリング設定（PrismaClient設定、ログレベル制御）
+- [x] 日付フィールドのString→DateTime型修正（@db.Date、全API/コンポーネント対応）
 
-### 6. テスト
+### 6. テスト（次に着手）
 - [ ] Vitest導入・設定
 - [ ] ユニットテスト（streak計算、subscription制限、utils）
 - [ ] APIテスト（全エンドポイント）

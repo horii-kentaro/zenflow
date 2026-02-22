@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-helpers";
 import { moodSchema } from "@/lib/validations";
-import { getToday } from "@/lib/utils";
+import { getTodayDate } from "@/lib/utils";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 export async function GET(request: Request) {
@@ -16,12 +16,12 @@ export async function GET(request: Request) {
 
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
-  const startDateStr = startDate.toISOString().split("T")[0];
+  const startDateValue = new Date(Date.UTC(startDate.getFullYear(), startDate.getMonth(), startDate.getDate()));
 
   const entries = await prisma.moodEntry.findMany({
     where: {
       userId: userId,
-      date: { gte: startDateStr },
+      date: { gte: startDateValue },
     },
     orderBy: { date: "asc" },
   });
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
     }
 
-    const today = getToday();
+    const today = getTodayDate();
     const entry = await prisma.moodEntry.upsert({
       where: {
         userId_date: { userId: userId, date: today },

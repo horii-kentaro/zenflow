@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -33,6 +33,8 @@ model VerificationToken {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model PasswordResetToken {
@@ -44,6 +46,8 @@ model PasswordResetToken {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Subscription {
@@ -75,6 +79,8 @@ model BillingHistory {
   createdAt        DateTime @default(now())
 
   subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([subscriptionId])
 }
 
 model MoodEntry {
@@ -82,12 +88,14 @@ model MoodEntry {
   userId    String
   score     Int
   note      String?
-  date      String
+  date      DateTime @db.Date
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, date])
+  @@index([userId])
+  @@index([date])
 }
 
 model Journal {
@@ -97,12 +105,15 @@ model Journal {
   sentiment      String?
   sentimentScore Float?
   summary        String?
-  date           String
+  date           DateTime @db.Date
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   messages JournalMessage[]
+
+  @@index([userId])
+  @@index([userId, date])
 }
 
 model JournalMessage {
@@ -114,6 +125,8 @@ model JournalMessage {
   createdAt DateTime @default(now())
 
   journal Journal @relation(fields: [journalId], references: [id], onDelete: Cascade)
+
+  @@index([journalId])
 }
 
 model SelfcareCompletion {
@@ -123,22 +136,25 @@ model SelfcareCompletion {
   routineTitle String
   routineData  String?
   durationSec  Int      @default(0)
-  date         String
+  date         DateTime @db.Date
   createdAt    DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, date])
 }
 
 model StreakData {
-  id             String   @id @default(cuid())
-  userId         String   @unique
-  currentStreak  Int      @default(0)
-  longestStreak  Int      @default(0)
-  lastActiveDate String?
-  freezesUsed    Int      @default(0)
+  id             String    @id @default(cuid())
+  userId         String    @unique
+  currentStreak  Int       @default(0)
+  longestStreak  Int       @default(0)
+  lastActiveDate DateTime? @db.Date
+  freezesUsed    Int       @default(0)
   freezeMonth    String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

@@ -13,7 +13,7 @@ export function MoodMiniChart() {
       .then((r) => r.json())
       .then((d) => {
         if (d.data) {
-          setData(d.data.map((e: { date: string; score: number }) => ({ date: e.date.slice(5), score: e.score })));
+          setData(d.data.map((e: { date: string; score: number }) => ({ date: e.date.slice(0, 10).slice(5), score: e.score })));
         }
       })
       .catch(console.error);

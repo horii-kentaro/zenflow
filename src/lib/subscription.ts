@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { FREE_LIMITS, PREMIUM_LIMITS } from "@/lib/constants";
-import { getToday, getWeekStart } from "@/lib/utils";
+import { getTodayDate, getWeekStartDate } from "@/lib/utils";
 
 type Feature = "selfcare" | "journal" | "moodHistory" | "streakFreeze" | "insights";
 
@@ -14,7 +14,7 @@ export async function checkFeatureAccess(
 
   switch (feature) {
     case "selfcare": {
-      const today = getToday();
+      const today = getTodayDate();
       const count = await prisma.selfcareCompletion.count({
         where: { userId, date: today },
       });
@@ -27,7 +27,7 @@ export async function checkFeatureAccess(
       };
     }
     case "journal": {
-      const weekStart = getWeekStart();
+      const weekStart = getWeekStartDate();
       const count = await prisma.journal.count({
         where: { userId, date: { gte: weekStart } },
       });

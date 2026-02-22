@@ -3,15 +3,29 @@ export function formatDate(date: Date | string): string {
   return d.toISOString().split("T")[0];
 }
 
+/** サーバーサイド用: 今日の日付をUTC midnight Dateで返す（Prisma @db.Date用） */
+export function getTodayDate(): Date {
+  const now = new Date();
+  return new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+}
+
+/** クライアントサイド用: 今日の日付を"YYYY-MM-DD"文字列で返す */
 export function getToday(): string {
   return formatDate(new Date());
 }
 
-export function getWeekStart(): string {
+/** サーバーサイド用: 今週月曜日をUTC midnight Dateで返す（Prisma @db.Date用） */
+export function getWeekStartDate(): Date {
   const now = new Date();
   const day = now.getDay();
   const diff = now.getDate() - day + (day === 0 ? -6 : 1);
-  return formatDate(new Date(now.setDate(diff)));
+  const weekStart = new Date(now);
+  weekStart.setDate(diff);
+  return new Date(Date.UTC(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate()));
+}
+
+export function getWeekStart(): string {
+  return formatDate(getWeekStartDate());
 }
 
 export function cn(...classes: (string | undefined | null | false)[]): string {

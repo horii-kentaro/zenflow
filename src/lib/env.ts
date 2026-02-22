@@ -1,7 +1,13 @@
 import { z } from "zod";
 
 const envSchema = z.object({
-  DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
+  DATABASE_URL: z
+    .string()
+    .min(1, "DATABASE_URL is required")
+    .refine(
+      (val) => val.startsWith("postgresql://") || val.startsWith("postgres://"),
+      "DATABASE_URL must be a PostgreSQL connection string (starts with postgresql:// or postgres://)"
+    ),
   AUTH_SECRET: z
     .string()
     .min(1, "AUTH_SECRET is required")

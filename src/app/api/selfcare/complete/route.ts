@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-helpers";
 import { updateStreak } from "@/lib/streak";
-import { getToday } from "@/lib/utils";
+import { getTodayDate } from "@/lib/utils";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
         routineTitle: routineTitle || "セルフケア",
         routineData: routineData ? JSON.stringify(routineData) : null,
         durationSec: durationSec || 0,
-        date: getToday(),
+        date: getTodayDate(),
       },
     });
 

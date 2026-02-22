@@ -7,6 +7,7 @@ import { ChatInterface } from "@/components/journal/ChatInterface";
 import { SentimentBadge } from "@/components/journal/SentimentBadge";
 import { Spinner } from "@/components/ui/Spinner";
 import { Button } from "@/components/ui/Button";
+import { formatDate } from "@/lib/utils";
 
 export default function JournalDetailPage() {
   const params = useParams();
@@ -60,7 +61,7 @@ export default function JournalDetailPage() {
             </svg>
           </button>
           <h1 className="text-lg font-semibold text-neutral-900">
-            {journal.title || journal.date}
+            {journal.title || formatDate(journal.date)}
           </h1>
           <SentimentBadge sentiment={journal.sentiment} />
         </div>
