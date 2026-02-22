@@ -31,6 +31,18 @@ export default function SettingsPage() {
   const [deleteError, setDeleteError] = useState("");
   const [deleteLoading, setDeleteLoading] = useState(false);
 
+  // 請求履歴
+  const [billingHistory, setBillingHistory] = useState<{
+    id: string;
+    amount: number;
+    currency: string;
+    status: string;
+    description: string | null;
+    invoiceUrl: string | null;
+    createdAt: string;
+  }[]>([]);
+  const [portalLoading, setPortalLoading] = useState(false);
+
   useEffect(() => {
     fetch("/api/subscription")
       .then((r) => r.json())
@@ -40,6 +52,11 @@ export default function SettingsPage() {
     fetch("/api/streak")
       .then((r) => r.json())
       .then((d) => { if (d.data) setStreakInfo(d.data); })
+      .catch(console.error);
+
+    fetch("/api/billing")
+      .then((r) => r.json())
+      .then((d) => { if (d.data) setBillingHistory(d.data); })
       .catch(console.error);
   }, [setPlan]);
 
@@ -142,11 +159,32 @@ export default function SettingsPage() {
             ? "Proプランをご利用中です。全機能にアクセスできます。"
             : "Freeプランをご利用中です。Proにアップグレードすると全機能が解放されます。"}
         </p>
-        <Link href="/pricing">
-          <Button variant="secondary" size="sm">
-            プラン管理
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/pricing">
+            <Button variant="secondary" size="sm">
+              プラン変更
+            </Button>
+          </Link>
+          {plan === "premium" && (
+            <Button
+              variant="secondary"
+              size="sm"
+              loading={portalLoading}
+              onClick={async () => {
+                setPortalLoading(true);
+                try {
+                  const res = await fetch("/api/stripe/portal", { method: "POST" });
+                  const data = await res.json();
+                  if (data.url) window.location.href = data.url;
+                } catch { /* ignore */ } finally {
+                  setPortalLoading(false);
+                }
+              }}
+            >
+              支払い管理（Stripe）
+            </Button>
+          )}
+        </div>
       </Card>
 
       {/* ストリーク */}
@@ -164,6 +202,42 @@ export default function SettingsPage() {
               <span className="text-sm text-neutral-600">最長ストリーク</span>
               <span className="text-sm font-medium text-neutral-900">{streakInfo.longestStreak}日</span>
             </div>
+          </div>
+        </Card>
+      )}
+
+      {/* 請求履歴 */}
+      {billingHistory.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>請求履歴</CardTitle>
+          </CardHeader>
+          <div className="space-y-2">
+            {billingHistory.map((item) => (
+              <div key={item.id} className="flex items-center justify-between py-2 border-b border-neutral-100 last:border-0">
+                <div>
+                  <p className="text-sm text-neutral-900">{item.description || "Proプラン"}</p>
+                  <p className="text-xs text-neutral-500">
+                    {new Date(item.createdAt).toLocaleDateString("ja-JP")}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-medium text-neutral-900">
+                    ¥{item.amount.toLocaleString()}
+                  </span>
+                  {item.invoiceUrl && (
+                    <a
+                      href={item.invoiceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-primary-600 hover:underline"
+                    >
+                      領収書
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         </Card>
       )}

@@ -17,6 +17,10 @@ const envSchema = z.object({
       (val) => val.startsWith("sk-ant-"),
       "ANTHROPIC_API_KEY must be a valid Anthropic API key (starts with sk-ant-)"
     ),
+  // Stripe（決済機能利用時に必要）
+  STRIPE_SECRET_KEY: z.string().optional(),
+  STRIPE_PRICE_ID: z.string().optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
 });
 
 type Env = z.infer<typeof envSchema>;

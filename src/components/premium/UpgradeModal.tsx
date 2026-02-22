@@ -1,9 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { PREMIUM_PRICE } from "@/lib/constants";
-import { useRouter } from "next/navigation";
 
 interface UpgradeModalProps {
   open: boolean;
@@ -12,12 +12,28 @@ interface UpgradeModalProps {
 }
 
 export function UpgradeModal({ open, onClose, message }: UpgradeModalProps) {
-  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  const handleUpgrade = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/stripe/checkout", { method: "POST" });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch {
+      // フォールバック
+      window.location.href = "/pricing";
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Modal open={open} onClose={onClose}>
       <div className="text-center">
-        <div className="text-4xl mb-3">✨</div>
+        <div className="text-4xl mb-3">&#10024;</div>
         <h2 className="text-xl font-bold text-neutral-900 mb-2">Proにアップグレード</h2>
         <p className="text-sm text-neutral-500 mb-4">
           {message || "この機能はProプランでご利用いただけます"}
@@ -41,14 +57,8 @@ export function UpgradeModal({ open, onClose, message }: UpgradeModalProps) {
           ))}
         </ul>
         <div className="space-y-2">
-          <Button
-            className="w-full"
-            onClick={() => {
-              router.push("/pricing");
-              onClose();
-            }}
-          >
-            プランを見る
+          <Button className="w-full" onClick={handleUpgrade} loading={loading}>
+            Proを始める
           </Button>
           <Button variant="ghost" className="w-full" onClick={onClose}>
             あとで

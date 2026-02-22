@@ -1,13 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { PricingCard } from "@/components/premium/PricingCard";
 import { PREMIUM_PRICE } from "@/lib/constants";
 import { useAppStore } from "@/stores/app-store";
 
-export default function PricingPage() {
+function PricingContent() {
+  const searchParams = useSearchParams();
   const { plan, setPlan } = useAppStore();
   const [loading, setLoading] = useState<string | null>(null);
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     fetch("/api/subscription")
@@ -16,18 +19,50 @@ export default function PricingPage() {
       .catch(console.error);
   }, [setPlan]);
 
-  const handleSelect = async (newPlan: "free" | "premium") => {
-    setLoading(newPlan);
+  useEffect(() => {
+    if (searchParams.get("success") === "true") {
+      setMessage("Proプランへのアップグレードが完了しました！");
+      fetch("/api/subscription")
+        .then((r) => r.json())
+        .then((d) => { if (d.data?.plan) setPlan(d.data.plan); })
+        .catch(console.error);
+    }
+    if (searchParams.get("canceled") === "true") {
+      setMessage("決済がキャンセルされました。");
+    }
+  }, [searchParams, setPlan]);
+
+  const handleSelectPremium = async () => {
+    setLoading("premium");
     try {
-      const res = await fetch("/api/subscription", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: newPlan }),
-      });
+      const res = await fetch("/api/stripe/checkout", { method: "POST" });
       const data = await res.json();
-      if (data.data?.plan) setPlan(data.data.plan);
-    } catch (e) {
-      console.error(e);
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setMessage(data.error || "チェックアウトに失敗しました");
+      }
+    } catch {
+      setMessage("チェックアウトに失敗しました");
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    setLoading("manage");
+    try {
+      const res = await fetch("/api/stripe/portal", { method: "POST" });
+      const data = await res.json();
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setMessage(data.error || "ポータルの表示に失敗しました");
+      }
+    } catch {
+      setMessage("ポータルの表示に失敗しました");
     } finally {
       setLoading(null);
     }
@@ -40,6 +75,14 @@ export default function PricingPage() {
         <p className="text-neutral-500 mt-2">あなたに合ったプランを選びましょう</p>
       </div>
 
+      {message && (
+        <div className={`rounded-lg p-3 text-sm text-center ${
+          message.includes("完了") ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"
+        }`}>
+          {message}
+        </div>
+      )}
+
       <div className="grid md:grid-cols-2 gap-6">
         <PricingCard
           name="Free"
@@ -51,9 +94,9 @@ export default function PricingPage() {
             "7日間の気分履歴",
             "基本的なAI対話",
           ]}
-          buttonLabel="Freeプランにする"
-          onSelect={() => handleSelect("free")}
-          loading={loading === "free"}
+          buttonLabel={plan === "premium" ? "プランを管理" : "現在のプラン"}
+          onSelect={plan === "premium" ? handleManageSubscription : () => {}}
+          loading={loading === "manage" && plan === "premium"}
           current={plan === "free"}
         />
         <PricingCard
@@ -69,12 +112,20 @@ export default function PricingPage() {
           ]}
           highlighted
           badge="おすすめ"
-          buttonLabel="Proを始める"
-          onSelect={() => handleSelect("premium")}
-          loading={loading === "premium"}
+          buttonLabel={plan === "premium" ? "プランを管理" : "Proを始める"}
+          onSelect={plan === "premium" ? handleManageSubscription : handleSelectPremium}
+          loading={plan === "premium" ? loading === "manage" : loading === "premium"}
           current={plan === "premium"}
         />
       </div>
     </div>
+  );
+}
+
+export default function PricingPage() {
+  return (
+    <Suspense fallback={<div className="text-center text-neutral-500 py-8">読み込み中...</div>}>
+      <PricingContent />
+    </Suspense>
   );
 }
