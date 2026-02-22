@@ -43,3 +43,11 @@ next-env.d.ts
 # database
 *.db
 *.db-journal
+
+# Playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/

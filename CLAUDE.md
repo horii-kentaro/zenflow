@@ -24,6 +24,8 @@ npx prisma studio    # DB GUI
 npx prisma migrate dev   # マイグレーション実行（開発）
 npx prisma migrate deploy # マイグレーション実行（本番）
 docker compose up -d     # ローカルPostgreSQL起動
+npm test                 # Vitestユニット/API/コンポーネントテスト実行
+npm run test:e2e         # Playwright E2Eテスト実行（要dev server）
 ```
 
 ## 環境変数（.env.local）
@@ -148,14 +150,14 @@ src/
 - [x] コネクションプーリング設定（PrismaClient設定、ログレベル制御）
 - [x] 日付フィールドのString→DateTime型修正（@db.Date、全API/コンポーネント対応）
 
-### 6. テスト（次に着手）
-- [ ] Vitest導入・設定
-- [ ] ユニットテスト（streak計算、subscription制限、utils）
-- [ ] APIテスト（全エンドポイント）
-- [ ] React Testing Libraryコンポーネントテスト
-- [ ] Playwright E2Eテスト（認証フロー、気分記録、ジャーナル）
+### 6. テスト（完了）
+- [x] Vitest導入・設定
+- [x] ユニットテスト（streak計算、subscription制限、utils）
+- [x] APIテスト（全エンドポイント）
+- [x] React Testing Libraryコンポーネントテスト
+- [x] Playwright E2Eテスト（認証フロー、気分記録、ジャーナル）
 
-### 7. エラーハンドリング
+### 7. エラーハンドリング（次に着手）
 - [ ] error.tsx（アプリ全体のエラーバウンダリ）
 - [ ] not-found.tsx（404ページ）
 - [ ] グローバル500エラーページ
