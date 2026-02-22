@@ -3,8 +3,11 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-helpers";
 import { moodSchema } from "@/lib/validations";
 import { getToday } from "@/lib/utils";
+import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 export async function GET(request: Request) {
+  const rateLimitResponse = rateLimit(request, RATE_LIMITS.api, "mood");
+  if (rateLimitResponse) return rateLimitResponse;
   const { error, userId } = await requireAuth();
   if (error) return error;
 
@@ -27,6 +30,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const rateLimitResponse = rateLimit(request, RATE_LIMITS.api, "mood");
+  if (rateLimitResponse) return rateLimitResponse;
+
   const { error, userId } = await requireAuth();
   if (error) return error;
 

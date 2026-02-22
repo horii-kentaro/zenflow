@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-helpers";
+import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const rateLimitResponse = rateLimit(request, RATE_LIMITS.api, "journal-id");
+  if (rateLimitResponse) return rateLimitResponse;
+
   const { error, userId } = await requireAuth();
   if (error) return error;
 
@@ -26,9 +30,12 @@ export async function GET(
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const rateLimitResponse = rateLimit(request, RATE_LIMITS.api, "journal-id");
+  if (rateLimitResponse) return rateLimitResponse;
+
   const { error, userId } = await requireAuth();
   if (error) return error;
 

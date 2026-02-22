@@ -4,8 +4,12 @@ import { anthropic } from "@/lib/anthropic";
 import { requireAuth } from "@/lib/auth-helpers";
 import { journalChatSchema } from "@/lib/validations";
 import { JOURNAL_SYSTEM_PROMPT, SENTIMENT_SYSTEM_PROMPT } from "@/lib/prompts";
+import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
+  const rateLimitResponse = rateLimit(request, RATE_LIMITS.ai, "journal-chat");
+  if (rateLimitResponse) return rateLimitResponse;
+
   const { error, userId } = await requireAuth();
   if (error) return error;
 

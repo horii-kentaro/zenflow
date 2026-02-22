@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth-helpers";
 import { getStreakData } from "@/lib/streak";
+import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const rateLimitResponse = rateLimit(request, RATE_LIMITS.api, "streak");
+  if (rateLimitResponse) return rateLimitResponse;
   const { error, userId } = await requireAuth();
   if (error) return error;
 

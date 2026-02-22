@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { anthropic } from "@/lib/anthropic";
 import { requireAuth } from "@/lib/auth-helpers";
 import { SELFCARE_SYSTEM_PROMPT, buildSelfcarePrompt } from "@/lib/prompts";
+import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 const FALLBACK_ROUTINE = {
   type: "breathing",
@@ -18,7 +19,10 @@ const FALLBACK_ROUTINE = {
   ],
 };
 
-export async function GET() {
+export async function GET(request: Request) {
+  const rateLimitResponse = rateLimit(request, RATE_LIMITS.ai, "selfcare");
+  if (rateLimitResponse) return rateLimitResponse;
+
   const { error, userId } = await requireAuth();
   if (error) return error;
 

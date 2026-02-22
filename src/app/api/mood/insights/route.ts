@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, getUserPlan } from "@/lib/auth-helpers";
+import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const rateLimitResponse = rateLimit(request, RATE_LIMITS.api, "mood-insights");
+  if (rateLimitResponse) return rateLimitResponse;
   const { error, userId } = await requireAuth();
   if (error) return error;
 

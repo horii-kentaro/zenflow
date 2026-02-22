@@ -2,8 +2,12 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { signupSchema } from "@/lib/validations";
 import { NextResponse } from "next/server";
+import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
+  const rateLimitResponse = rateLimit(request, RATE_LIMITS.auth, "signup");
+  if (rateLimitResponse) return rateLimitResponse;
+
   try {
     const body = await request.json();
     const parsed = signupSchema.safeParse(body);

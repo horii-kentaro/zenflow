@@ -3,8 +3,12 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-helpers";
 import { updateStreak } from "@/lib/streak";
 import { getToday } from "@/lib/utils";
+import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
+  const rateLimitResponse = rateLimit(request, RATE_LIMITS.api, "selfcare-complete");
+  if (rateLimitResponse) return rateLimitResponse;
+
   const { error, userId } = await requireAuth();
   if (error) return error;
 
