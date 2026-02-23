@@ -86,7 +86,7 @@ describe("LoginForm", () => {
 
   it("メール未認証エラー時に専用メッセージと再送信ボタンを表示する", async () => {
     const user = userEvent.setup();
-    mockSignIn.mockResolvedValue({ error: "EMAIL_NOT_VERIFIED" });
+    mockSignIn.mockResolvedValue({ error: "AccessDenied" });
     render(<LoginForm />);
 
     await user.type(screen.getByLabelText("メールアドレス"), "test@example.com");
@@ -101,7 +101,7 @@ describe("LoginForm", () => {
 
   it("認証メール再送信ボタンをクリックすると再送信APIを呼ぶ", async () => {
     const user = userEvent.setup();
-    mockSignIn.mockResolvedValue({ error: "EMAIL_NOT_VERIFIED" });
+    mockSignIn.mockResolvedValue({ error: "AccessDenied" });
     (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ success: true }),

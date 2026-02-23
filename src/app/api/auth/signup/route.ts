@@ -5,7 +5,7 @@ import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { createVerificationToken } from "@/lib/tokens";
 import { sendVerificationEmail } from "@/lib/mail";
 import { apiSuccess, validationError, conflictError, internalError } from "@/lib/api-error";
-import { withLogging } from "@/lib/logger";
+import { logger, withLogging } from "@/lib/logger";
 
 export const POST = withLogging(async function POST(request: Request) {
   const rateLimitResponse = rateLimit(request, RATE_LIMITS.auth, "signup");
@@ -42,9 +42,13 @@ export const POST = withLogging(async function POST(request: Request) {
       },
     });
 
-    // メール認証トークンを送信
-    const token = await createVerificationToken(user.id);
-    await sendVerificationEmail(email, token);
+    // メール認証トークンを送信（失敗してもサインアップは成功させる）
+    try {
+      const token = await createVerificationToken(user.id);
+      await sendVerificationEmail(email, token);
+    } catch (err) {
+      logger.error("Failed to send verification email", { err: String(err), email });
+    }
 
     return apiSuccess({ userId: user.id });
   } catch {

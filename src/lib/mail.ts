@@ -35,12 +35,17 @@ export async function sendMail({ to, subject, html }: SendMailOptions) {
     return;
   }
 
-  await resend.emails.send({
+  const { error } = await resend.emails.send({
     from: FROM_ADDRESS,
     to,
     subject,
     html,
   });
+
+  if (error) {
+    console.error("Resend email error:", error);
+    throw new Error(`メール送信に失敗しました: ${error.message}`);
+  }
 }
 
 export async function sendVerificationEmail(email: string, token: string) {

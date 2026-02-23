@@ -5,6 +5,13 @@ export const authConfig = {
     signIn: "/login",
   },
   callbacks: {
+    signIn({ user }) {
+      // メール未認証ユーザーのログインをブロック（クライアントに "AccessDenied" エラーが返る）
+      if ("emailVerified" in user && !user.emailVerified) {
+        return false;
+      }
+      return true;
+    },
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
       const isOnApp = nextUrl.pathname.startsWith("/dashboard") ||

@@ -32,7 +32,7 @@ export function LoginForm() {
       });
 
       if (result?.error) {
-        if (result.error.includes("EMAIL_NOT_VERIFIED")) {
+        if (result.error === "AccessDenied") {
           setEmailNotVerified(true);
           setError("メールアドレスが未認証です。受信トレイの確認メールをご確認ください。");
         } else {
