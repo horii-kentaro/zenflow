@@ -34,6 +34,8 @@ const envSchema = z.object({
   NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
   SENTRY_ORG: z.string().optional(),
   SENTRY_PROJECT: z.string().optional(),
+  // Resend（メール送信、本番時に必要）
+  RESEND_API_KEY: z.string().optional(),
   // Google Analytics
   NEXT_PUBLIC_GA_ID: z.string().optional(),
 });

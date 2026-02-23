@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
+import {
+  sendSubscriptionConfirmationEmail,
+  sendPaymentReceiptEmail,
+  sendSubscriptionCancellationEmail,
+} from "@/lib/mail";
 import Stripe from "stripe";
 import { validationError, internalError } from "@/lib/api-error";
 import { logger, withLogging } from "@/lib/logger";
@@ -63,6 +68,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   const sub = await prisma.subscription.findUnique({
     where: { stripeCustomerId: customerId },
+    include: { user: { select: { email: true } } },
   });
 
   if (!sub) {
@@ -85,6 +91,13 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       endDate: new Date(subData.current_period_end * 1000),
     },
   });
+
+  // プレミアム登録確認メール送信
+  try {
+    await sendSubscriptionConfirmationEmail(sub.user.email, "プレミアム");
+  } catch (err) {
+    logger.error("Failed to send subscription confirmation email", { err: String(err) });
+  }
 }
 
 async function handleInvoicePaid(invoice: Stripe.Invoice) {
@@ -92,6 +105,7 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
 
   const sub = await prisma.subscription.findUnique({
     where: { stripeCustomerId: customerId },
+    include: { user: { select: { email: true } } },
   });
 
   if (!sub) return;
@@ -127,6 +141,14 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
       },
     });
   }
+
+  // 支払い完了通知メール送信
+  try {
+    const date = new Date(invoice.created * 1000).toLocaleDateString("ja-JP");
+    await sendPaymentReceiptEmail(sub.user.email, invoice.amount_paid, date);
+  } catch (err) {
+    logger.error("Failed to send payment receipt email", { err: String(err) });
+  }
 }
 
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
@@ -158,6 +180,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 
   const sub = await prisma.subscription.findUnique({
     where: { stripeCustomerId: customerId },
+    include: { user: { select: { email: true } } },
   });
 
   if (!sub) return;
@@ -171,4 +194,11 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
       endDate: null,
     },
   });
+
+  // 解約通知メール送信
+  try {
+    await sendSubscriptionCancellationEmail(sub.user.email);
+  } catch (err) {
+    logger.error("Failed to send subscription cancellation email", { err: String(err) });
+  }
 }

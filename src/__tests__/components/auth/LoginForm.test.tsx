@@ -23,6 +23,7 @@ const mockSignIn = signIn as ReturnType<typeof vi.fn>;
 describe("LoginForm", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    global.fetch = vi.fn();
   });
 
   it("メールアドレスとパスワードのフィールドを表示する", () => {
@@ -80,6 +81,50 @@ describe("LoginForm", () => {
 
     await waitFor(() => {
       expect(screen.getByText("メールアドレスまたはパスワードが正しくありません")).toBeInTheDocument();
+    });
+  });
+
+  it("メール未認証エラー時に専用メッセージと再送信ボタンを表示する", async () => {
+    const user = userEvent.setup();
+    mockSignIn.mockResolvedValue({ error: "EMAIL_NOT_VERIFIED" });
+    render(<LoginForm />);
+
+    await user.type(screen.getByLabelText("メールアドレス"), "test@example.com");
+    await user.type(screen.getByLabelText("パスワード"), "Password1!");
+    await user.click(screen.getByRole("button", { name: "ログイン" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("メールアドレスが未認証です。受信トレイの確認メールをご確認ください。")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "認証メールを再送信" })).toBeInTheDocument();
+    });
+  });
+
+  it("認証メール再送信ボタンをクリックすると再送信APIを呼ぶ", async () => {
+    const user = userEvent.setup();
+    mockSignIn.mockResolvedValue({ error: "EMAIL_NOT_VERIFIED" });
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ success: true }),
+    });
+    render(<LoginForm />);
+
+    await user.type(screen.getByLabelText("メールアドレス"), "test@example.com");
+    await user.type(screen.getByLabelText("パスワード"), "Password1!");
+    await user.click(screen.getByRole("button", { name: "ログイン" }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "認証メールを再送信" })).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole("button", { name: "認証メールを再送信" }));
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith("/api/auth/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: "test@example.com" }),
+      });
+      expect(screen.getByText("認証メールを再送信しました。受信トレイをご確認ください。")).toBeInTheDocument();
     });
   });
 

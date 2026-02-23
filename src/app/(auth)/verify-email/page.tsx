@@ -41,8 +41,8 @@ function VerifyEmailContent() {
         <>
           <div className="text-4xl">&#10003;</div>
           <p className="text-sm text-neutral-700">{message}</p>
-          <Link href="/dashboard">
-            <Button className="w-full">ダッシュボードへ</Button>
+          <Link href="/login">
+            <Button className="w-full">ログインページへ</Button>
           </Link>
         </>
       )}

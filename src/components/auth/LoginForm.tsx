@@ -13,10 +13,15 @@ export function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [emailNotVerified, setEmailNotVerified] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setEmailNotVerified(false);
+    setResendSuccess(false);
     setLoading(true);
 
     try {
@@ -27,7 +32,12 @@ export function LoginForm() {
       });
 
       if (result?.error) {
-        setError("メールアドレスまたはパスワードが正しくありません");
+        if (result.error.includes("EMAIL_NOT_VERIFIED")) {
+          setEmailNotVerified(true);
+          setError("メールアドレスが未認証です。受信トレイの確認メールをご確認ください。");
+        } else {
+          setError("メールアドレスまたはパスワードが正しくありません");
+        }
       } else {
         router.push("/dashboard");
         router.refresh();
@@ -36,6 +46,30 @@ export function LoginForm() {
       setError("ログインに失敗しました");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    setResendLoading(true);
+    setResendSuccess(false);
+
+    try {
+      const res = await fetch("/api/auth/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      if (res.ok) {
+        setResendSuccess(true);
+      } else {
+        const data = await res.json();
+        setError(data.error?.message || "再送信に失敗しました");
+      }
+    } catch {
+      setError("再送信に失敗しました");
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -60,6 +94,23 @@ export function LoginForm() {
         required
       />
       {error && <p className="text-sm text-red-500" role="alert">{error}</p>}
+      {emailNotVerified && (
+        <div className="space-y-2">
+          {resendSuccess ? (
+            <p className="text-sm text-green-600">認証メールを再送信しました。受信トレイをご確認ください。</p>
+          ) : (
+            <Button
+              type="button"
+              variant="secondary"
+              className="w-full"
+              loading={resendLoading}
+              onClick={handleResendVerification}
+            >
+              認証メールを再送信
+            </Button>
+          )}
+        </div>
+      )}
       <div className="text-right">
         <Link href="/forgot-password" className="text-xs text-primary-600 hover:underline">
           パスワードを忘れた方

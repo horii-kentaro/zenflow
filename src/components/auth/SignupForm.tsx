@@ -1,19 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import Link from "next/link";
 
 export function SignupForm() {
-  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,24 +32,34 @@ export function SignupForm() {
         return;
       }
 
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
-
-      if (result?.error) {
-        setError("登録は完了しましたが、ログインに失敗しました");
-      } else {
-        router.push("/dashboard");
-        router.refresh();
-      }
+      setSuccess(true);
     } catch {
       setError("登録に失敗しました");
     } finally {
       setLoading(false);
     }
   };
+
+  if (success) {
+    return (
+      <div className="text-center space-y-4">
+        <div className="text-4xl">📧</div>
+        <h3 className="text-lg font-semibold text-neutral-900">確認メールを送信しました</h3>
+        <p className="text-sm text-neutral-600">
+          <strong>{email}</strong> に確認メールを送信しました。<br />
+          メール内のリンクをクリックして、アカウントを有効化してください。
+        </p>
+        <p className="text-xs text-neutral-500">
+          メールが届かない場合は、迷惑メールフォルダをご確認ください。
+        </p>
+        <Link href="/login">
+          <Button variant="secondary" className="w-full">
+            ログインページへ
+          </Button>
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
