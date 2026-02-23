@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { CookieBanner } from "@/components/ui/CookieBanner";
 
@@ -32,7 +32,9 @@ describe("CookieBanner", () => {
     const user = userEvent.setup();
     const { container } = render(<CookieBanner />);
 
-    await user.click(screen.getByRole("button", { name: "同意する" }));
+    await act(async () => {
+      await user.click(screen.getByRole("button", { name: "同意する" }));
+    });
     expect(container.firstChild).toBeNull();
   });
 

@@ -1,22 +1,32 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 import Link from "next/link";
 
-export function CookieBanner() {
-  const [visible, setVisible] = useState(false);
+const CONSENT_KEY = "cookie-consent";
 
-  useEffect(() => {
-    const consent = localStorage.getItem("cookie-consent");
-    if (!consent) setVisible(true);
+function subscribe(callback: () => void) {
+  window.addEventListener("storage", callback);
+  return () => window.removeEventListener("storage", callback);
+}
+
+function getSnapshot() {
+  return localStorage.getItem(CONSENT_KEY);
+}
+
+function getServerSnapshot() {
+  return "server";
+}
+
+export function CookieBanner() {
+  const consent = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+
+  const handleAccept = useCallback(() => {
+    localStorage.setItem(CONSENT_KEY, "accepted");
+    window.dispatchEvent(new Event("storage"));
   }, []);
 
-  const handleAccept = () => {
-    localStorage.setItem("cookie-consent", "accepted");
-    setVisible(false);
-  };
-
-  if (!visible) return null;
+  if (consent === "server" || consent) return null;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-neutral-200 shadow-lg p-4">

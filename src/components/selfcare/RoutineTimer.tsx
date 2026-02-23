@@ -14,7 +14,6 @@ export function RoutineTimer({ routine, onComplete, onCancel }: RoutineTimerProp
   const totalSeconds = routine.durationMin * 60;
   const [elapsed, setElapsed] = useState(0);
   const [running, setRunning] = useState(true);
-  const [currentStep, setCurrentStep] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -34,12 +33,9 @@ export function RoutineTimer({ routine, onComplete, onCancel }: RoutineTimerProp
     };
   }, [running, totalSeconds]);
 
-  useEffect(() => {
-    if (routine.steps.length > 0) {
-      const stepDuration = totalSeconds / routine.steps.length;
-      setCurrentStep(Math.min(Math.floor(elapsed / stepDuration), routine.steps.length - 1));
-    }
-  }, [elapsed, totalSeconds, routine.steps.length]);
+  const currentStep = routine.steps.length > 0
+    ? Math.min(Math.floor(elapsed / (totalSeconds / routine.steps.length)), routine.steps.length - 1)
+    : 0;
 
   const progress = elapsed / totalSeconds;
   const circumference = 2 * Math.PI * 80;

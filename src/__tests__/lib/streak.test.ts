@@ -14,7 +14,7 @@ vi.mock("@/lib/prisma", () => ({
 
 import { prisma } from "@/lib/prisma";
 import { updateStreak, getStreakData } from "@/lib/streak";
-import { formatDate, getTodayDate } from "@/lib/utils";
+import { getTodayDate } from "@/lib/utils";
 
 const mockStreakData = prisma.streakData as unknown as {
   upsert: ReturnType<typeof vi.fn>;
