@@ -12,6 +12,10 @@ export const POST = withLogging(async function POST(request: Request) {
   const { error, userId } = await requireAuth();
   if (error) return error;
 
+  if (!process.env.STRIPE_SECRET_KEY) {
+    return apiSuccess({ message: "決済機能は現在準備中です。もうしばらくお待ちください。" });
+  }
+
   try {
     const sub = await prisma.subscription.findUnique({
       where: { userId },

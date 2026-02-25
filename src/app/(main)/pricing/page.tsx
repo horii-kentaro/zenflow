@@ -38,7 +38,9 @@ function PricingContent() {
       const res = await fetch("/api/stripe/checkout", { method: "POST" });
       const data = await res.json();
 
-      if (data.url) {
+      if (data.data?.message) {
+        setMessage(data.data.message);
+      } else if (data.url) {
         window.location.href = data.url;
       } else {
         setMessage(data.error || "チェックアウトに失敗しました");

@@ -12,6 +12,11 @@ export const POST = withLogging(async function POST(request: Request) {
   const { error, userId } = await requireAuth();
   if (error) return error;
 
+  // Stripe未設定の場合は準備中メッセージを返す
+  if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_PRICE_ID) {
+    return apiSuccess({ message: "決済機能は現在準備中です。もうしばらくお待ちください。" });
+  }
+
   try {
     const user = await prisma.user.findUnique({
       where: { id: userId },
