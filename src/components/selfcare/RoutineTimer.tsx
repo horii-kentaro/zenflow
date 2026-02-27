@@ -40,12 +40,24 @@ export function RoutineTimer({ routine, onComplete, onCancel }: RoutineTimerProp
   const progress = elapsed / totalSeconds;
   const circumference = 2 * Math.PI * 80;
   const offset = circumference * (1 - progress);
-  const minutes = Math.floor((totalSeconds - elapsed) / 60);
-  const seconds = (totalSeconds - elapsed) % 60;
+  const remaining = totalSeconds - elapsed;
+  const minutes = Math.floor(remaining / 60);
+  const seconds = remaining % 60;
   const isComplete = elapsed >= totalSeconds;
 
   return (
     <div className="flex flex-col items-center">
+      {/* Current step name - prominently displayed */}
+      {!isComplete && routine.steps[currentStep] && (
+        <div className="text-center mb-6 animate-fade-in" key={currentStep}>
+          <p className="text-xs text-neutral-400 mb-1">
+            ステップ {currentStep + 1} / {routine.steps.length}
+          </p>
+          <p className="text-lg font-semibold text-neutral-900">{routine.steps[currentStep]}</p>
+        </div>
+      )}
+
+      {/* Progress ring with time in center */}
       <div className="relative mb-8">
         <svg width="200" height="200" viewBox="0 0 200 200">
           <circle cx="100" cy="100" r="80" fill="none" stroke="#e7e5e4" strokeWidth="10" />
@@ -60,22 +72,42 @@ export function RoutineTimer({ routine, onComplete, onCancel }: RoutineTimerProp
             transform="rotate(-90 100 100)"
             className="transition-all duration-1000"
           />
-          <text x="100" y="90" textAnchor="middle" className="text-3xl font-bold" fill="#1c1917">
-            {isComplete ? "✓" : `${minutes}:${seconds.toString().padStart(2, "0")}`}
-          </text>
-          <text x="100" y="115" textAnchor="middle" className="text-sm" fill="#78716c">
-            {isComplete ? "完了！" : "残り"}
-          </text>
+          {isComplete ? (
+            <>
+              <text x="100" y="95" textAnchor="middle" className="text-4xl font-bold" fill="#22c55e">
+                ✓
+              </text>
+              <text x="100" y="120" textAnchor="middle" className="text-sm" fill="#78716c">
+                完了！
+              </text>
+            </>
+          ) : (
+            <>
+              <text x="100" y="95" textAnchor="middle" className="text-3xl font-bold" fill="#1c1917">
+                {minutes}:{seconds.toString().padStart(2, "0")}
+              </text>
+              <text x="100" y="120" textAnchor="middle" className="text-xs" fill="#a8a29e">
+                残り
+              </text>
+            </>
+          )}
         </svg>
         {running && !isComplete && (
           <div className="absolute inset-0 rounded-full animate-breathe opacity-10 bg-primary-400" />
         )}
       </div>
 
-      {!isComplete && routine.steps[currentStep] && (
-        <div className="text-center mb-6 animate-fade-in" key={currentStep}>
-          <p className="text-sm text-neutral-500 mb-1">ステップ {currentStep + 1}/{routine.steps.length}</p>
-          <p className="text-lg font-medium text-neutral-900">{routine.steps[currentStep]}</p>
+      {/* Step progress dots */}
+      {!isComplete && routine.steps.length > 1 && (
+        <div className="flex items-center gap-1.5 mb-6">
+          {routine.steps.map((_, i) => (
+            <div
+              key={i}
+              className={`w-2 h-2 rounded-full transition-colors ${
+                i <= currentStep ? "bg-primary-500" : "bg-neutral-200"
+              }`}
+            />
+          ))}
         </div>
       )}
 

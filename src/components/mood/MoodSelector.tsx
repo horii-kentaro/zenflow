@@ -5,22 +5,25 @@ import { MOOD_OPTIONS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { MoodScore } from "@/types";
 import { Button } from "@/components/ui/Button";
+import { MoodContextTags } from "./MoodContextTags";
 
 interface MoodSelectorProps {
-  onSubmit: (score: MoodScore, note?: string) => Promise<void>;
+  onSubmit: (score: MoodScore, note?: string, context?: string) => Promise<void>;
   initialScore?: MoodScore;
 }
 
 export function MoodSelector({ onSubmit, initialScore }: MoodSelectorProps) {
   const [selected, setSelected] = useState<MoodScore | null>(initialScore || null);
   const [note, setNote] = useState("");
+  const [contextTags, setContextTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
     if (!selected) return;
     setLoading(true);
     try {
-      await onSubmit(selected, note || undefined);
+      const context = contextTags.length > 0 ? contextTags.join(",") : undefined;
+      await onSubmit(selected, note || undefined, context);
     } finally {
       setLoading(false);
     }
@@ -49,6 +52,7 @@ export function MoodSelector({ onSubmit, initialScore }: MoodSelectorProps) {
       </div>
       {selected && (
         <div className="space-y-3 animate-fade-in">
+          <MoodContextTags selected={contextTags} onChange={setContextTags} />
           <textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}

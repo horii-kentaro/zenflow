@@ -4,6 +4,10 @@ import { StreakCounter } from "@/components/dashboard/StreakCounter";
 import { TodayRecommendation } from "@/components/dashboard/TodayRecommendation";
 import { InsightCard } from "@/components/dashboard/InsightCard";
 import { PremiumTeaser } from "@/components/dashboard/PremiumTeaser";
+import { TodayProgress } from "@/components/dashboard/TodayProgress";
+import { QuickActions } from "@/components/dashboard/QuickActions";
+import { GreetingHeader } from "@/components/dashboard/GreetingHeader";
+import { StreakMilestone } from "@/components/dashboard/StreakMilestone";
 
 const WeeklySummaryCard = dynamic(
   () => import("@/components/dashboard/WeeklySummaryCard").then((m) => m.WeeklySummaryCard),
@@ -23,6 +27,10 @@ export const metadata = {
 export default function DashboardPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
+      <GreetingHeader />
+      <StreakMilestone />
+      <TodayProgress />
+      <QuickActions />
       <MoodCheckIn />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <WeeklySummaryCard />

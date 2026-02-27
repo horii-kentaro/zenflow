@@ -52,7 +52,7 @@ describe("MoodSelector", () => {
     await user.click(screen.getAllByRole("button")[3]); // 良い (score: 4)
     await user.click(screen.getByText("気分を記録する"));
 
-    expect(onSubmit).toHaveBeenCalledWith(4, undefined);
+    expect(onSubmit).toHaveBeenCalledWith(4, undefined, undefined);
   });
 
   it("ノート付きで送信できる", async () => {
@@ -67,7 +67,7 @@ describe("MoodSelector", () => {
 
     await user.click(screen.getByText("気分を記録する"));
 
-    expect(onSubmit).toHaveBeenCalledWith(3, "良い日でした");
+    expect(onSubmit).toHaveBeenCalledWith(3, "良い日でした", undefined);
   });
 
   it("initialScoreで初期選択される", () => {

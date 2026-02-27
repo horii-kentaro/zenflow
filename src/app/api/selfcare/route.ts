@@ -28,6 +28,9 @@ export const GET = withLogging(async function GET(request: Request) {
   if (error) return error;
 
   try {
+    const { searchParams } = new URL(request.url);
+    const preferredType = searchParams.get("type") || undefined;
+
     const days = ["日曜日", "月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日"];
     const dayOfWeek = days[new Date().getDay()];
 
@@ -43,7 +46,7 @@ export const GET = withLogging(async function GET(request: Request) {
     });
 
     const history = recentCompletions.map((c) => c.routineType);
-    const prompt = buildSelfcarePrompt(dayOfWeek, recentMood?.score, history);
+    const prompt = buildSelfcarePrompt(dayOfWeek, recentMood?.score, history, preferredType);
 
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-5-20250514",

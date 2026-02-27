@@ -53,11 +53,13 @@ export const POST = withLogging(async function POST(request: Request) {
       update: {
         score: parsed.data.score,
         note: parsed.data.note || null,
+        context: parsed.data.context || null,
       },
       create: {
         userId: userId,
         score: parsed.data.score,
         note: parsed.data.note || null,
+        context: parsed.data.context || null,
         date: today,
       },
     });

@@ -4,6 +4,12 @@ import { useState, useRef, useEffect } from "react";
 import { JournalMessageData } from "@/types";
 import { ChatMessage } from "./ChatMessage";
 
+const SUGGESTED_TOPICS = [
+  "今日の気分について",
+  "最近嬉しかったこと",
+  "悩んでいること",
+];
+
 interface ChatInterfaceProps {
   journalId: string;
   initialMessages: JournalMessageData[];
@@ -21,14 +27,14 @@ export function ChatInterface({ journalId, initialMessages }: ChatInterfaceProps
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, streamingText]);
 
-  const handleSend = async () => {
-    const text = input.trim();
-    if (!text || streaming) return;
+  const handleSend = async (text?: string) => {
+    const msg = (text || input).trim();
+    if (!msg || streaming) return;
 
     const userMsg: JournalMessageData = {
       id: `temp-${Date.now()}`,
       role: "user",
-      content: text,
+      content: msg,
       createdAt: new Date().toISOString(),
     };
 
@@ -41,7 +47,7 @@ export function ChatInterface({ journalId, initialMessages }: ChatInterfaceProps
       const res = await fetch("/api/journal/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ journalId, message: text }),
+        body: JSON.stringify({ journalId, message: msg }),
       });
 
       if (!res.ok) throw new Error("Failed to send");
@@ -104,6 +110,17 @@ export function ChatInterface({ journalId, initialMessages }: ChatInterfaceProps
               <br />
               AIがあなたの思考整理をサポートします。
             </p>
+            <div className="flex flex-wrap justify-center gap-2 mt-4">
+              {SUGGESTED_TOPICS.map((topic) => (
+                <button
+                  key={topic}
+                  onClick={() => handleSend(topic)}
+                  className="px-3 py-1.5 rounded-full bg-primary-50 text-primary-700 text-xs font-medium hover:bg-primary-100 transition-colors"
+                >
+                  {topic}
+                </button>
+              ))}
+            </div>
           </div>
         )}
         {messages.map((msg) => (
@@ -123,13 +140,13 @@ export function ChatInterface({ journalId, initialMessages }: ChatInterfaceProps
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="メッセージを入力..."
+            placeholder="今日あったことや気持ちを書いてみましょう..."
             rows={1}
             className="flex-1 resize-none rounded-lg border border-neutral-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 max-h-32"
             style={{ minHeight: "42px" }}
           />
           <button
-            onClick={handleSend}
+            onClick={() => handleSend()}
             disabled={!input.trim() || streaming}
             className="h-[42px] px-4 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors disabled:opacity-50 active:scale-[0.98] shrink-0"
           >

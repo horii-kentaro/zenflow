@@ -34,13 +34,25 @@ export const SENTIMENT_SYSTEM_PROMPT = `以下の会話から感情分析を行�
   "summary": "会話の要約（50文字以内）"
 }`;
 
-export function buildSelfcarePrompt(dayOfWeek: string, recentMood?: number, history?: string[]) {
+export function buildSelfcarePrompt(dayOfWeek: string, recentMood?: number, history?: string[], preferredType?: string) {
   let prompt = `今日は${dayOfWeek}です。`;
   if (recentMood) {
     prompt += `ユーザーの最近の気分スコアは${recentMood}/5です。`;
   }
   if (history && history.length > 0) {
-    prompt += `最近のルーティン: ${history.join(", ")}。異なるタイプを提案してください。`;
+    prompt += `最近のルーティン: ${history.join(", ")}。`;
+    if (!preferredType || preferredType === "auto") {
+      prompt += "異なるタイプを提案してください。";
+    }
+  }
+  if (preferredType && preferredType !== "auto") {
+    const typeLabels: Record<string, string> = {
+      breathing: "呼吸法",
+      stretch: "ストレッチ",
+      mindfulness: "マインドフルネス",
+      bodyscan: "ボディスキャン",
+    };
+    prompt += `ユーザーが希望するルーティンタイプ: ${typeLabels[preferredType] || preferredType}。`;
   }
   prompt += "5分間のセルフケアルーティンを1つ提案してください。";
   return prompt;

@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { RoutineData } from "@/types";
 import { RoutineCard } from "@/components/selfcare/RoutineCard";
 import { RoutineTimer } from "@/components/selfcare/RoutineTimer";
+import { RoutineTypeSelector } from "@/components/selfcare/RoutineTypeSelector";
+import { SelfcareHistory } from "@/components/selfcare/SelfcareHistory";
 import { useAppStore } from "@/stores/app-store";
 import { Spinner } from "@/components/ui/Spinner";
 
@@ -11,16 +13,20 @@ export default function SelfcarePage() {
   const [routine, setRoutine] = useState<RoutineData | null>(null);
   const [loading, setLoading] = useState(true);
   const [mode, setMode] = useState<"browse" | "timer" | "complete">("browse");
+  const [tab, setTab] = useState<"today" | "history">("today");
+  const [routineType, setRoutineType] = useState("auto");
   const { setStreak } = useAppStore();
+  const routineTypeRef = useRef(routineType);
+  routineTypeRef.current = routineType;
 
-  useEffect(() => {
-    fetchRoutine();
-  }, []);
-
-  const fetchRoutine = async () => {
+  const fetchRoutine = useCallback(async (type?: string) => {
     setLoading(true);
     try {
-      const res = await fetch("/api/selfcare");
+      const typeParam = type || routineTypeRef.current;
+      const url = typeParam && typeParam !== "auto"
+        ? `/api/selfcare?type=${typeParam}`
+        : "/api/selfcare";
+      const res = await fetch(url);
       const data = await res.json();
       if (data.data) setRoutine(data.data);
     } catch (e) {
@@ -28,6 +34,15 @@ export default function SelfcarePage() {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    fetchRoutine();
+  }, [fetchRoutine]);
+
+  const handleTypeChange = (type: string) => {
+    setRoutineType(type);
+    fetchRoutine(type);
   };
 
   const handleComplete = async (durationSec: number) => {
@@ -51,52 +66,85 @@ export default function SelfcarePage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="max-w-2xl mx-auto flex items-center justify-center py-20">
-        <Spinner size="lg" />
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold text-neutral-900">セルフケア</h1>
-
-      {mode === "browse" && routine && (
-        <RoutineCard routine={routine} onStart={() => setMode("timer")} />
-      )}
-
-      {mode === "timer" && routine && (
-        <div className="bg-white rounded-xl border border-neutral-200 p-8 shadow-sm">
-          <RoutineTimer
-            routine={routine}
-            onComplete={handleComplete}
-            onCancel={() => setMode("browse")}
-          />
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-neutral-900">セルフケア</h1>
+        <div className="flex bg-neutral-100 rounded-lg p-0.5">
+          <button
+            onClick={() => setTab("today")}
+            className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+              tab === "today" ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500"
+            }`}
+          >
+            今日
+          </button>
+          <button
+            onClick={() => setTab("history")}
+            className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+              tab === "history" ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500"
+            }`}
+          >
+            履歴
+          </button>
         </div>
-      )}
+      </div>
 
-      {mode === "complete" && (
-        <div className="bg-white rounded-xl border border-neutral-200 p-8 shadow-sm text-center animate-fade-in">
-          <div className="text-6xl mb-4">🎉</div>
-          <h2 className="text-xl font-bold text-neutral-900 mb-2">お疲れさまでした！</h2>
-          <p className="text-neutral-500 mb-6">今日のセルフケアを完了しました</p>
-          <div className="flex gap-3 justify-center">
-            <button
-              onClick={() => { setMode("browse"); fetchRoutine(); }}
-              className="h-10 px-4 bg-primary-600 text-white rounded-md text-sm font-medium hover:bg-primary-700 transition-colors active:scale-[0.98]"
-            >
-              別のルーティンを試す
-            </button>
-            <a
-              href="/dashboard"
-              className="h-10 px-4 bg-neutral-100 text-neutral-800 rounded-md text-sm font-medium hover:bg-neutral-200 transition-colors inline-flex items-center"
-            >
-              ダッシュボードへ
-            </a>
-          </div>
-        </div>
+      {tab === "history" ? (
+        <SelfcareHistory />
+      ) : (
+        <>
+          {mode === "browse" && (
+            <div className="bg-white rounded-xl border border-neutral-200 p-5 shadow-sm">
+              <h2 className="text-sm font-semibold text-neutral-900 mb-3">ルーティンタイプ</h2>
+              <RoutineTypeSelector selected={routineType} onChange={handleTypeChange} />
+            </div>
+          )}
+
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <Spinner size="lg" />
+            </div>
+          ) : (
+            <>
+              {mode === "browse" && routine && (
+                <RoutineCard routine={routine} onStart={() => setMode("timer")} />
+              )}
+
+              {mode === "timer" && routine && (
+                <div className="bg-white rounded-xl border border-neutral-200 p-8 shadow-sm">
+                  <RoutineTimer
+                    routine={routine}
+                    onComplete={handleComplete}
+                    onCancel={() => setMode("browse")}
+                  />
+                </div>
+              )}
+
+              {mode === "complete" && (
+                <div className="bg-white rounded-xl border border-neutral-200 p-8 shadow-sm text-center animate-fade-in">
+                  <div className="text-6xl mb-4">🎉</div>
+                  <h2 className="text-xl font-bold text-neutral-900 mb-2">お疲れさまでした！</h2>
+                  <p className="text-neutral-500 mb-6">今日のセルフケアを完了しました</p>
+                  <div className="flex gap-3 justify-center">
+                    <button
+                      onClick={() => { setMode("browse"); fetchRoutine(); }}
+                      className="h-10 px-4 bg-primary-600 text-white rounded-md text-sm font-medium hover:bg-primary-700 transition-colors active:scale-[0.98]"
+                    >
+                      別のルーティンを試す
+                    </button>
+                    <a
+                      href="/dashboard"
+                      className="h-10 px-4 bg-neutral-100 text-neutral-800 rounded-md text-sm font-medium hover:bg-neutral-200 transition-colors inline-flex items-center"
+                    >
+                      ダッシュボードへ
+                    </a>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </>
       )}
     </div>
   );

@@ -16,6 +16,7 @@ export interface MoodEntryData {
   id: string;
   score: MoodScore;
   note?: string | null;
+  context?: string | null;
   date: string;
   createdAt: string;
 }
@@ -26,6 +27,7 @@ export interface JournalData {
   sentiment?: string | null;
   sentimentScore?: number | null;
   summary?: string | null;
+  isFavorite?: boolean;
   date: string;
   createdAt: string;
   messages?: JournalMessageData[];

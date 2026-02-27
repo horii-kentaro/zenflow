@@ -3,6 +3,9 @@
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { PricingCard } from "@/components/premium/PricingCard";
+import { FAQ } from "@/components/premium/FAQ";
+import { FeatureComparison } from "@/components/premium/FeatureComparison";
+import { UsageStatus } from "@/components/premium/UsageStatus";
 import { PREMIUM_PRICE } from "@/lib/constants";
 import { useAppStore } from "@/stores/app-store";
 
@@ -85,6 +88,8 @@ function PricingContent() {
         </div>
       )}
 
+      <UsageStatus />
+
       <div className="grid md:grid-cols-2 gap-6">
         <PricingCard
           name="Free"
@@ -120,6 +125,9 @@ function PricingContent() {
           current={plan === "premium"}
         />
       </div>
+
+      <FeatureComparison />
+      <FAQ />
     </div>
   );
 }

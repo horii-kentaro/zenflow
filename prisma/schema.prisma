@@ -9,13 +9,14 @@ datasource db {
 }
 
 model User {
-  id             String    @id @default(cuid())
-  email          String    @unique
-  name           String?
-  hashedPassword String
-  emailVerified  Boolean   @default(false)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id                String    @id @default(cuid())
+  email             String    @unique
+  name              String?
+  hashedPassword    String
+  emailVerified     Boolean   @default(false)
+  notificationPrefs Json?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   subscription        Subscription?
   moodEntries         MoodEntry[]
@@ -89,6 +90,7 @@ model MoodEntry {
   userId    String
   score     Int
   note      String?
+  context   String?
   date      DateTime @db.Date
   createdAt DateTime @default(now())
 
@@ -106,6 +108,7 @@ model Journal {
   sentiment      String?
   sentimentScore Float?
   summary        String?
+  isFavorite     Boolean  @default(false)
   date           DateTime @db.Date
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt

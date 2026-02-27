@@ -22,6 +22,7 @@ export const signupSchema = z.object({
 export const moodSchema = z.object({
   score: z.number().int().min(1).max(5),
   note: z.string().max(500).optional(),
+  context: z.string().max(200).optional(),
 });
 
 export const journalChatSchema = z.object({

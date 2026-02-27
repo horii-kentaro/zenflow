@@ -3,11 +3,24 @@
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { JournalList } from "@/components/journal/JournalList";
-import { useState } from "react";
+import { JournalSearch } from "@/components/journal/JournalSearch";
+import { useState, useCallback } from "react";
 
 export default function JournalPage() {
   const router = useRouter();
   const [creating, setCreating] = useState(false);
+  const [search, setSearch] = useState("");
+  const [sentiment, setSentiment] = useState("");
+  const [favorite, setFavorite] = useState(false);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearch(value);
+    if (debounceTimer) clearTimeout(debounceTimer);
+    const timer = setTimeout(() => setDebouncedSearch(value), 300);
+    setDebounceTimer(timer);
+  }, [debounceTimer]);
 
   const handleNew = async () => {
     setCreating(true);
@@ -34,7 +47,15 @@ export default function JournalPage() {
           新しいジャーナル
         </Button>
       </div>
-      <JournalList />
+      <JournalSearch
+        search={search}
+        onSearchChange={handleSearchChange}
+        sentiment={sentiment}
+        onSentimentChange={setSentiment}
+        favorite={favorite}
+        onFavoriteChange={setFavorite}
+      />
+      <JournalList search={debouncedSearch} sentiment={sentiment} favorite={favorite} />
     </div>
   );
 }
