@@ -12,7 +12,7 @@
 - **認証**: NextAuth.js v5 beta（Credentials + JWT）
 - **AI**: Anthropic Claude API（claude-sonnet-4-5-20250514）
 - **チャート**: Recharts
-- **状態管理**: Zustand
+- **状態管理**: Zustand（persist middleware でlocalStorage永続化済み）
 - **バリデーション**: Zod
 
 ## 開発コマンド
@@ -49,52 +49,85 @@ src/
 │   ├── layout.tsx                   # ルートレイアウト（Geist + Noto Sans JP）
 │   ├── (auth)/login, signup/        # 認証ページ
 │   ├── (main)/                      # 認証済みエリア（サイドバーレイアウト）
-│   │   ├── dashboard/               # ダッシュボード
-│   │   ├── selfcare/                # セルフケアルーティン
-│   │   ├── journal/, journal/new/, journal/[id]/  # AIジャーナリング
-│   │   ├── mood/                    # 気分トラッキング
-│   │   ├── pricing/                 # 料金プラン
-│   │   └── settings/                # 設定
+│   │   ├── dashboard/               # ダッシュボード（進捗カード、挨拶、マイルストーン、クイックアクション）
+│   │   ├── selfcare/                # セルフケア（タイプ選択、タイマー、履歴タブ）
+│   │   ├── journal/, journal/new/, journal/[id]/  # AIジャーナリング（検索、お気に入り、おすすめトピック）
+│   │   ├── mood/                    # 気分トラッキング（コンテキストタグ、週間サマリー、カレンダー）
+│   │   ├── pricing/                 # 料金プラン（FAQ、機能比較、利用状況）
+│   │   └── settings/                # 設定（4タブ: プロフィール/サブスクリプション/セキュリティ/データ）
 │   └── api/                         # APIルート群
+│       ├── auth/profile/            # プロフィール更新 (PATCH)
+│       ├── selfcare/history/        # セルフケア履歴 (GET)
+│       ├── selfcare/today-status/   # 今日の完了状態 (GET)
+│       └── usage/                   # 利用残数 (GET)
 ├── auth.ts, auth.config.ts, middleware.ts
-├── components/                      # UI / layout / dashboard / mood / selfcare / journal / premium
+├── components/
+│   ├── dashboard/                   # GreetingHeader, TodayProgress, QuickActions, StreakMilestone, ...
+│   ├── mood/                        # MoodContextTags, WeeklySummary, MoodCalendar, ...
+│   ├── selfcare/                    # RoutineTypeSelector, SelfcareHistory, RoutineTimer, ...
+│   ├── journal/                     # JournalSearch, ChatInterface(おすすめトピック), ...
+│   ├── premium/                     # FAQ, FeatureComparison, UsageStatus, ...
+│   ├── layout/                      # Sidebar(残数表示), SidebarUsage, ...
+│   └── ui/                          # Skeleton, Button, Input, Modal, ...
 ├── hooks/                           # useSubscription, useStreak, useFeatureGate, useMoodData
 ├── lib/                             # prisma, anthropic, auth-helpers, prompts, streak, subscription, utils
-├── stores/app-store.ts              # Zustand
+├── stores/app-store.ts              # Zustand（persist: plan, sidebarOpen, planFetchedAt）
 └── types/                           # 型定義
 ```
 
-## 現在の状態（2026-02-22時点）
+## 現在の状態（2026-02-28時点）
 
-### 完了済み（MVP全7フェーズ実装完了）
-- Phase 1: プロジェクト基盤（Prisma, デザインシステム, UIコンポーネント）
-- Phase 2: 認証（NextAuth v5, サインアップ/ログイン）
-- Phase 3: ランディングページ + メインレイアウト + ダッシュボード
-- Phase 4: 気分トラッキング（5段階セレクター, Rechartsグラフ）
-- Phase 5: セルフケア + ストリーク（AIルーティン生成, タイマー, プログレスリング）
-- Phase 6: AIジャーナリング（SSEストリーミング, 感情分析）
-- Phase 7: フリーミアム + 仕上げ（サブスクリプション制限, 料金ページ）
+### 完了済み
+- MVP全7フェーズ実装完了
+- 本番リリース残作業12項目すべて完了（セキュリティ〜パフォーマンス）
+- **8ページ機能強化完了**（2026-02-28実装）
 
-**ビルド**: エラー0件、23ルート生成済み
-**ローカル動作確認済み**: localhost:3000
+### 8ページ機能強化の詳細（最新実装）
 
-### 未実装（本番リリースに必要な残作業）
+#### Phase 1: ダッシュボード強化
+- [x] GreetingHeader - 時間帯別挨拶（朝/昼/夜）+ 日付・曜日表示
+- [x] TodayProgress - 気分記録/セルフケア/ジャーナルの3つの完了状況カード
+- [x] QuickActions - 3つのアクションへのカラー付きショートカットボタン
+- [x] StreakMilestone - 7/14/30/60/100日到達時の祝福バナー（localStorage管理）
 
-優先度順：
-1. **セキュリティ**: レート制限、セキュリティヘッダー、CORS設定
-2. **認証フロー**: パスワードリセット、メール認証、アカウント削除、パスワード変更
-3. **決済統合**: Stripe連携（現在はDB直接変更のみ）、Webhook、請求管理
-4. **法的対応**: プライバシーポリシー、利用規約、特定商取引法表記
-5. **DB本番化**: PostgreSQL移行、インデックス追加、マイグレーション管理
-6. **テスト**: テストフレームワーク導入、ユニット/API/E2Eテスト
-7. **エラーハンドリング**: error.tsx、not-found.tsx、統一エラーレスポンス
-8. **監視・ログ**: Sentry等エラートラッキング、リクエストログ、アラート
-9. **CI/CD**: GitHub Actions、自動テスト・デプロイパイプライン
-10. **SEO**: robots.txt、sitemap.xml、OGPタグ
-11. **アクセシビリティ**: aria-label、フォーカス管理、キーボードナビ
-12. **パフォーマンス**: バンドル最適化、キャッシング、ページネーション
+#### Phase 2: 気分トラッキング強化
+- [x] MoodContextTags - 7種類のきっかけタグ選択（仕事/人間関係/健康/天気/睡眠/運動/その他）
+- [x] WeeklySummary - 平均スコア、記録日数/7、前週比較（↑↓→）
+- [x] MoodCalendar - Pro限定の月間カレンダービュー（カラードット、日付クリックで詳細表示）
+- [x] DBスキーマ: MoodEntry.context (String?) 追加
 
-詳細な残作業リストは会話履歴を参照。
+#### Phase 3: セルフケア強化
+- [x] 今日/履歴タブ切替（SelfcareHistory: 無料7日/Pro 30日）
+- [x] RoutineTypeSelector - 5種類選択（おまかせ/呼吸法/ストレッチ/マインドフルネス/ボディスキャン）
+- [x] タイマーUX改善 - ステップ名大表示、進捗ドット、ステップ情報をリング上部に移動
+- [x] API: `/api/selfcare/history`, `/api/selfcare/today-status`
+
+#### Phase 4: ジャーナル強化
+- [x] JournalSearch - キーワード検索バー + 感情フィルター + お気に入りフィルター
+- [x] お気に入り機能 - ハートアイコンでトグル（PATCH `/api/journal/[id]`）
+- [x] ChatInterface改善 - おすすめトピック3チップ（「今日の気分について」「最近嬉しかったこと」「悩んでいること」）
+- [x] DBスキーマ: Journal.isFavorite (Boolean) 追加
+
+#### Phase 5: 料金ページ強化
+- [x] FAQ - アコーディオン形式の5問
+- [x] FeatureComparison - Free/Pro 12項目の機能比較テーブル
+- [x] UsageStatus - 無料ユーザー向けプログレスバー付き利用状況
+
+#### Phase 6: 設定ページ強化
+- [x] タブレイアウト（URLハッシュ対応: #profile/#subscription/#security/#data）
+- [x] プロフィール編集 - 名前のインライン編集（PATCH `/api/auth/profile`）
+- [x] 通知設定 - 支払い通知/週間レポートのON/OFF切替
+- [x] DBスキーマ: User.notificationPrefs (Json?) 追加
+
+#### Phase 7: 共通UX改善
+- [x] Zustand永続化（persist middleware: plan, sidebarOpen, planFetchedAt。キャッシュ5分）
+- [x] SidebarUsage - 無料ユーザー向け残り回数表示 / Proバッジ
+- [x] Skeleton UI - CardSkeleton, ListSkeleton コンポーネント
+- [x] API: `/api/usage`
+
+**ビルド**: エラー0件、47ルート生成
+**テスト**: 20ファイル、195テスト全パス
+**デプロイ**: Vercel自動デプロイ済み（https://zenflow-alpha.vercel.app）
 
 ## 既知の注意点
 
@@ -108,92 +141,24 @@ src/
 
 ## 次回の作業指示
 
-セッション開始時、残作業リストの1番「セキュリティ」から順番に実装を進めること。
-各項目の詳細は以下の通り：
+8ページ機能強化が完了し、Vercelにデプロイ済み。次のステップとして以下を検討：
 
-### 1. セキュリティ（完了）
-- [x] レート制限の実装（ログイン、API全エンドポイント。ブルートフォース防止）
-- [x] セキュリティヘッダーの追加（next.config.tsにHSTS、CSP、X-Frame-Options、X-Content-Type-Options）
-- [x] CORS設定
-- [x] 環境変数の起動時バリデーション（必須変数が未設定なら起動エラー）
-- [x] AIレスポンスのサニタイズ（XSS防止）※JSX自動エスケープで安全確認済み
-- [x] パスワード強度ルールの強化（大小英数字・記号要件）
+### 優先度高
+1. **ローカル動作確認**: `docker compose up -d && npm run dev` で全ページの無料/有料プラン動作確認
+   - `POST /api/subscription { "plan": "premium" }` でPro切替テスト
+   - 各ページのPro限定機能（カレンダー、履歴30日等）が正しく動作するか確認
+2. **本番DBマイグレーション**: Vercel上で `npx prisma migrate deploy` が必要（context, isFavorite, notificationPrefs）
+3. **E2Eテスト追加**: 新機能（検索、お気に入り、タブ切替等）のPlaywrightテスト
 
-### 2. 認証フロー（完了）
-- [x] メール送信基盤の導入（Nodemailer、開発環境はコンソール出力）
-- [x] パスワードリセット機能（トークン生成、メール送信、リセットページ）
-- [x] メール認証（登録時の確認メール、認証エンドポイント）
-- [x] パスワード変更機能（設定ページから）
-- [x] アカウント削除機能（GDPR対応、関連データの完全削除）
-- [x] セッションタイムアウト設定（JWT maxAge 7日間）
+### 優先度中
+4. **ジャーナルタイトル自動生成**: AIの初回応答後にタイトルを自動設定する機能（プラン済み未実装）
+5. **タイトルインライン編集**: ジャーナル一覧でタイトルクリックで編集
+6. **通知設定の永続化**: 現在のnotificationPrefsはDB保存済みだが、ページ読み込み時にDBから読み込むロジックが未実装
 
-### 3. 決済統合（完了）
-- [x] Stripe SDK導入・設定（遅延初期化）
-- [x] Checkout Session作成API（/api/stripe/checkout）
-- [x] Webhook受信エンドポイント（checkout完了、invoice支払い、サブスク更新/削除）
-- [x] 請求履歴の保存・表示（BillingHistoryモデル、設定ページ）
-- [x] サブスクリプション自動更新・期限管理（Webhook経由）
-- [x] カスタマーポータルリンク（/api/stripe/portal）
-
-### 4. 法的対応（完了）
-- [x] プライバシーポリシーページ作成（/privacy）
-- [x] 利用規約ページ作成（/terms）
-- [x] 特定商取引法に基づく表記ページ作成（/tokushoho）
-- [x] Cookie同意バナー（ルートレイアウト、localStorage保持）
-- [x] AI利用に関する説明の開示（プライバシーポリシー内）
-- [x] データエクスポート機能（/api/auth/export-data、JSON形式）
-
-### 5. DB本番化（完了）
-- [x] PostgreSQL移行（provider変更、docker-compose.yml、接続設定）
-- [x] インデックス追加（全テーブルにuserId、date等のインデックス追加）
-- [x] prisma migrateによるマイグレーション管理導入（0001_init作成）
-- [x] コネクションプーリング設定（PrismaClient設定、ログレベル制御）
-- [x] 日付フィールドのString→DateTime型修正（@db.Date、全API/コンポーネント対応）
-
-### 6. テスト（完了）
-- [x] Vitest導入・設定
-- [x] ユニットテスト（streak計算、subscription制限、utils）
-- [x] APIテスト（全エンドポイント）
-- [x] React Testing Libraryコンポーネントテスト
-- [x] Playwright E2Eテスト（認証フロー、気分記録、ジャーナル）
-
-### 7. エラーハンドリング（完了）
-- [x] error.tsx（アプリ全体のエラーバウンダリ）
-- [x] not-found.tsx（404ページ）
-- [x] グローバル500エラーページ
-- [x] APIエラーレスポンス形式の統一（エラーコード、メッセージ）
-- [x] ネットワークエラー時のユーザー向けUI
-
-### 8. 監視・ログ（完了）
-- [x] Sentry導入（エラートラッキング）
-- [x] リクエストログ（メソッド、URL、ステータス、所要時間）
-- [x] ヘルスチェックエンドポイント（/api/health）
-- [x] GA4等のアナリティクス導入
-
-### 9. CI/CD（完了）
-- [x] GitHub Actions（lint、型チェック、テスト、ビルド）
-- [x] 自動デプロイパイプライン（Vercel or Docker）
-- [x] pre-commitフック（husky + lint-staged）
-
-### 10. SEO（完了）
-- [x] robots.txt作成
-- [x] sitemap.xml生成
-- [x] OGPタグ（Open Graph）設定
-- [x] 全ページのメタデータ設定
-
-### 11. アクセシビリティ（完了）
-- [x] aria-label追加（アイコンボタン、ナビ、ローディング）
-- [x] モーダルのフォーカストラップ
-- [x] キーボードナビゲーション対応
-
-### 12. パフォーマンス（完了）
-- [x] Rechartsの動的インポート
-- [x] APIレスポンスキャッシング
-- [x] ジャーナル一覧のページネーション
-- [x] バンドルサイズ分析・最適化
-
-完了した項目にはチェックを入れ（[x]）、コミットメッセージに反映すること。
-1つの項目が完了するごとにコミット＆プッシュすること。
+### 優先度低
+7. **PWA対応**: Service Worker、オフライン対応
+8. **多言語対応**: i18n基盤
+9. **ダークモード**: テーマ切替
 
 ## 言語
 
