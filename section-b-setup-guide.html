@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zenflow — ゼロから構築する完全ガイド</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+
+    :root {
+      --bg-primary: #060a1a;
+      --bg-secondary: #0d1230;
+      --bg-card: #111638;
+      --bg-card-hover: #161d48;
+      --accent-cyan: #00d4ff;
+      --accent-purple: #7c5cff;
+      --accent-pink: #ff3cac;
+      --gradient-ai: linear-gradient(135deg, #00d4ff, #7c5cff, #ff3cac);
+      --text-primary: #e8eaf6;
+      --text-secondary: #8892b0;
+      --text-muted: #5a6380;
+      --border-subtle: rgba(124, 92, 255, 0.2);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Noto Sans JP', 'Outfit', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.8;
+      padding: 40px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1, h2, h3, h4 { font-family: 'Outfit', 'Noto Sans JP', sans-serif; }
+    code, pre { font-family: 'JetBrains Mono', monospace; }
+
+    a.service-link {
+      color: var(--accent-cyan);
+      text-decoration: none;
+      border-bottom: 1px dashed rgba(0, 212, 255, 0.4);
+      transition: all 0.2s ease;
+    }
+    a.service-link:hover {
+      color: #fff;
+      border-bottom-color: var(--accent-cyan);
+      text-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+    }
+    a.service-link::after {
+      content: " ↗";
+      font-size: 0.75em;
+      opacity: 0.6;
+    }
+
+    /* Nav */
+    .report-nav {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 40px;
+      padding: 16px 20px;
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+      flex-wrap: wrap;
+    }
+    .report-nav a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.9rem;
+      padding: 6px 14px;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+    .report-nav a:hover {
+      color: var(--accent-cyan);
+      background: rgba(0, 212, 255, 0.1);
+    }
+    .report-nav a.active {
+      color: var(--accent-cyan);
+      background: rgba(0, 212, 255, 0.15);
+      font-weight: 600;
+    }
+
+    /* Title */
+    .page-title {
+      font-size: 2.4rem;
+      font-weight: 800;
+      background: var(--gradient-ai);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 12px;
+    }
+    .page-subtitle {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      margin-bottom: 48px;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 48px 0 24px;
+      padding-left: 16px;
+      border-left: 3px solid transparent;
+      border-image: var(--gradient-ai) 1;
+    }
+
+    /* Progress bar */
+    .progress-bar {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 48px;
+      overflow-x: auto;
+      padding: 20px 0;
+    }
+    .progress-step {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .progress-step a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .progress-step a.done {
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+      color: #fff;
+    }
+    .progress-step a.done:hover {
+      transform: scale(1.15);
+      box-shadow: 0 0 16px rgba(0, 212, 255, 0.4);
+    }
+    .progress-connector {
+      width: 24px;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+      flex-shrink: 0;
+      align-self: center;
+    }
+
+    /* Step card */
+    .step-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 28px 32px;
+      margin-bottom: 32px;
+      transition: border-color 0.2s ease;
+    }
+    .step-card:hover {
+      border-color: rgba(0, 212, 255, 0.3);
+    }
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .step-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+      color: #fff;
+      font-weight: 800;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+    .step-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+    .step-date {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-left: auto;
+    }
+    .step-commits {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+    .commit-hash {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      background: rgba(0, 212, 255, 0.08);
+      color: var(--accent-cyan);
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid rgba(0, 212, 255, 0.15);
+    }
+    .step-overview {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin-bottom: 16px;
+      line-height: 1.7;
+    }
+    .step-details {
+      margin: 0;
+      padding-left: 20px;
+    }
+    .step-details li {
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      margin-bottom: 8px;
+    }
+    .step-details li code {
+      font-size: 0.8rem;
+      background: #0a0f2e;
+      color: var(--accent-cyan);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .code-block {
+      background: #0a0f2e;
+      border-left: 3px solid var(--accent-cyan);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 12px 0;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+
+    .tools-used {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .tool-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 12px;
+      background: rgba(124, 92, 255, 0.1);
+      border: 1px solid rgba(124, 92, 255, 0.2);
+      border-radius: 20px;
+      font-size: 0.8rem;
+      color: var(--accent-purple);
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .tool-badge:hover {
+      background: rgba(124, 92, 255, 0.2);
+      color: #fff;
+    }
+
+    .check-section {
+      margin-top: 16px;
+      padding: 12px 16px;
+      background: rgba(0, 230, 118, 0.06);
+      border: 1px solid rgba(0, 230, 118, 0.15);
+      border-radius: 8px;
+      font-size: 0.85rem;
+      color: #00e676;
+    }
+
+    .warn-section {
+      margin-top: 12px;
+      padding: 12px 16px;
+      background: rgba(255, 214, 0, 0.06);
+      border: 1px solid rgba(255, 214, 0, 0.15);
+      border-radius: 8px;
+      font-size: 0.85rem;
+      color: #ffd600;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-ok {
+      background: rgba(0, 230, 118, 0.15);
+      color: #00e676;
+      border: 1px solid rgba(0, 230, 118, 0.3);
+    }
+
+    footer {
+      margin-top: 64px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <nav class="report-nav">
+    <a href="./section-a-tools-and-services.html">A. ツール・サービス一覧</a>
+    <a href="./section-b-setup-guide.html" class="active">B. 構築フロー</a>
+    <a href="./section-c-system-architecture.html">C. システム構成</a>
+  </nav>
+
+  <h1 class="page-title">ゼロから構築する完全ガイド</h1>
+  <p class="page-subtitle">Git履歴に基づく実際の構築工程 — Web MVP からモバイルアプリへの全16ステップ（2026-03-08更新）</p>
+
+  <!-- Progress bar -->
+  <div class="progress-bar">
+    <div class="progress-step"><a href="#step1" class="done">1</a></div>
+    <div class="progress-connector"></div>
+    <div class="progress-step"><a href="#step2" class="done">2</a></div>
+    <div class="progress-connector"></div>
+    <div class="progress-step"><a href="#step3" class="done">3</a></div>
+    <div class="progress-connector"></div>
+    <div class="progress-step"><a href="#step4" class="done">4</a></div>
+    <div class="progress-connector"></div>
+    <div class="progress-step"><a href="#step5" class="done">5</a></div>
+    <div class="progress-connector"></div>
+    <div class="progress-step"><a href="#step6" class="done">6</a></div>
+    <div class="progress-connector"></div>
+    <div class="progress-step"><a href="#step7" class="done">7</a></div>
+    <div class="progress-connector"></div>
+    <div class="progress-step"><a href="#step8" class="done">8</a></div>
+    <div class="progress-connector"></div>
+    <div class="progress-step"><a href="#step9" class="done">9</a></div>
+    <div class="progress-connector"></div>
+    <div class="progress-step"><a href="#step10" class="done">10</a></div>
+    <div class="progress-connector"></div>
+    <div class="progress-step"><a href="#step11" class="done">11</a></div>
+    <div class="progress-connector"></div>
+    <div class="progress-step"><a href="#step12" class="done">12</a></div>
+    <div class="progress-connector"></div>
+    <div class="progress-step"><a href="#step13" class="done">13</a></div>
+    <div class="progress-connector"></div>
+    <div class="progress-step"><a href="#step14" class="done">14</a></div>
+    <div class="progress-connector"></div>
+    <div class="progress-step"><a href="#step15" class="done">15</a></div>
+    <div class="progress-connector"></div>
+    <div class="progress-step"><a href="#step16" class="done">16</a></div>
+  </div>
+
+  <h2>Phase 1: Web MVP 構築（バックエンド + フロントエンド）</h2>
+
+  <!-- ===== Step 1 ===== -->
+  <div class="step-card" id="step1">
+    <div class="step-header">
+      <span class="step-number">1</span>
+      <span class="step-title">MVP全7フェーズ一括構築</span>
+      <span class="step-date">2026-02-22</span>
+    </div>
+    <div class="step-commits">
+      <span class="commit-hash">4d8166c</span>
+      <span class="commit-hash">c3b2179</span>
+      <span class="commit-hash">68dc0e8</span>
+      <span class="commit-hash">72df654</span>
+    </div>
+    <p class="step-overview">
+      Claude Code を使用して Next.js 16 (App Router) + Prisma 6 + PostgreSQL + NextAuth.js v5 による
+      AIウェルネスコーチ MVP を一括構築。認証、ダッシュボード、気分トラッキング、セルフケア、
+      AIジャーナリング、料金プラン、設定ページの全機能を実装。
+    </p>
+    <ol class="step-details">
+      <li>Next.js 16 プロジェクト作成 + Tailwind CSS v4 セットアップ</li>
+      <li>Prisma 6 + PostgreSQL（Docker Compose）でDB構築</li>
+      <li>NextAuth.js v5 beta（Credentials + JWT）認証</li>
+      <li>ダッシュボード・気分・セルフケア・ジャーナル・料金・設定の全6画面</li>
+      <li>Anthropic Claude API（AIジャーナリング対話）統合</li>
+      <li>Stripe サブスクリプション決済連携</li>
+      <li>Vitest テスト（165テスト）+ Playwright E2E テスト</li>
+    </ol>
+    <div class="tools-used">
+      <a href="https://docs.anthropic.com/en/docs/claude-code" target="_blank" rel="noopener" class="tool-badge">Claude Code</a>
+      <a href="https://nextjs.org/" target="_blank" rel="noopener" class="tool-badge">Next.js 16</a>
+      <a href="https://www.prisma.io/" target="_blank" rel="noopener" class="tool-badge">Prisma 6</a>
+      <a href="https://authjs.dev/" target="_blank" rel="noopener" class="tool-badge">NextAuth.js v5</a>
+    </div>
+    <div class="check-section">
+      ✅ 確認：<code>npm run dev</code> で全ページ表示。ユーザー登録・ログイン・AI対話動作
+    </div>
+  </div>
+
+  <!-- ===== Step 2 ===== -->
+  <div class="step-card" id="step2">
+    <div class="step-header">
+      <span class="step-number">2</span>
+      <span class="step-title">本番リリース準備（セキュリティ〜パフォーマンス）</span>
+      <span class="step-date">2026-02-22</span>
+    </div>
+    <div class="step-commits">
+      <span class="commit-hash">94299a8</span>
+      <span class="commit-hash">9efb8fc</span>
+      <span class="commit-hash">b51f55b</span>
+      <span class="commit-hash">6fb1073</span>
+    </div>
+    <p class="step-overview">
+      本番リリースに向けた12項目の品質改善を実施。SEO対応、アクセシビリティ、パフォーマンス最適化、
+      エラーハンドリング統一、APIレスポンス形式統一を完了。
+    </p>
+    <ol class="step-details">
+      <li>SEO: robots.txt, sitemap.xml, OGP画像, 全ページメタデータ</li>
+      <li>アクセシビリティ: ARIA属性、キーボードナビゲーション</li>
+      <li>パフォーマンス: バンドル分析、キャッシュ戦略、遅延ロード</li>
+      <li>エラーハンドリング: try-catch統一、統一レスポンス形式</li>
+      <li>監視・ログ: 構造化ログ実装</li>
+    </ol>
+    <div class="check-section">
+      ✅ 確認：ビルドエラー0件。195テスト全パス
+    </div>
+  </div>
+
+  <!-- ===== Step 3 ===== -->
+  <div class="step-card" id="step3">
+    <div class="step-header">
+      <span class="step-number">3</span>
+      <span class="step-title">Vercel デプロイ + Stripe/Resend 統合</span>
+      <span class="step-date">2026-02-22〜28</span>
+    </div>
+    <div class="step-commits">
+      <span class="commit-hash">c68b73d</span>
+      <span class="commit-hash">ba38121</span>
+      <span class="commit-hash">772a5eb</span>
+      <span class="commit-hash">670aea8</span>
+    </div>
+    <p class="step-overview">
+      Vercel 本番デプロイ、Resend メール統合（メール認証必須化）、Stripe 未設定時のフォールバック表示を実装。
+    </p>
+    <ol class="step-details">
+      <li>Vercel 本番デプロイ対応（環境変数設定）</li>
+      <li>Resend メール統合：メール認証必須化 + サブスク通知メール</li>
+      <li>メール認証フローの3つのバグ修正</li>
+      <li>Stripe 未設定時「決済機能は準備中です」メッセージ表示</li>
+    </ol>
+    <div class="tools-used">
+      <a href="https://vercel.com/" target="_blank" rel="noopener" class="tool-badge">Vercel</a>
+      <a href="https://resend.com/" target="_blank" rel="noopener" class="tool-badge">Resend</a>
+      <a href="https://stripe.com/" target="_blank" rel="noopener" class="tool-badge">Stripe</a>
+    </div>
+    <div class="check-section">
+      ✅ 確認：<a class="service-link" href="https://zenflow-alpha.vercel.app" target="_blank" rel="noopener">https://zenflow-alpha.vercel.app</a> で本番動作確認
+    </div>
+  </div>
+
+  <!-- ===== Step 4 ===== -->
+  <div class="step-card" id="step4">
+    <div class="step-header">
+      <span class="step-number">4</span>
+      <span class="step-title">8ページ機能強化（Phase 1〜7）</span>
+      <span class="step-date">2026-02-28</span>
+    </div>
+    <div class="step-commits">
+      <span class="commit-hash">111b5f6</span>
+      <span class="commit-hash">21ac3d6</span>
+    </div>
+    <p class="step-overview">
+      Web版の全8ページに大幅な機能強化を実施。ダッシュボード（挨拶・進捗・クイックアクション・ストリーク）、
+      気分（コンテキストタグ・週間サマリー・カレンダー）、セルフケア（履歴・タイプ選択・タイマーUX改善）、
+      ジャーナル（検索・お気に入り・おすすめトピック）、料金（FAQ・機能比較・利用状況）、
+      設定（4タブ・プロフィール編集・通知設定）を追加。
+    </p>
+    <ol class="step-details">
+      <li>ダッシュボード: GreetingHeader, TodayProgress, QuickActions, StreakMilestone</li>
+      <li>気分: MoodContextTags（7種類）, WeeklySummary, MoodCalendar（Pro限定）</li>
+      <li>セルフケア: RoutineTypeSelector（5種類）, SelfcareHistory, タイマーUX改善</li>
+      <li>ジャーナル: JournalSearch, お気に入り（isFavorite）, おすすめトピック3チップ</li>
+      <li>料金: FAQ, FeatureComparison（12項目）, UsageStatus</li>
+      <li>設定: 4タブ（URLハッシュ対応）, プロフィール編集, 通知設定</li>
+      <li>共通: Zustand永続化, SidebarUsage, Skeleton UI, <code>/api/usage</code></li>
+      <li>DB: MoodEntry.context, Journal.isFavorite, User.notificationPrefs 追加</li>
+    </ol>
+    <div class="check-section">
+      ✅ 確認：ビルドエラー0件、47ルート生成。195テスト全パス
+    </div>
+  </div>
+
+  <h2>Phase 2: モバイルアプリ構築（Expo + React Native）</h2>
+
+  <!-- ===== Step 5 ===== -->
+  <div class="step-card" id="step5">
+    <div class="step-header">
+      <span class="step-number">5</span>
+      <span class="step-title">Expo プロジェクト初期化 + 全12画面構築</span>
+      <span class="step-date">2026-03-08</span>
+    </div>
+    <div class="step-commits">
+      <span class="commit-hash">119f281</span>
+    </div>
+    <p class="step-overview">
+      Expo SDK 55 + React Native 0.83 + Expo Router でモバイルアプリを新規構築。
+      Web版フロントエンドを削除し、バックエンドAPI（<code>src/app/api/</code>）のみ残してモバイル専用に移行。
+      全12画面を一括実装。
+    </p>
+    <ol class="step-details">
+      <li><code>mobile/</code> ディレクトリに Expo プロジェクト作成</li>
+      <li>Expo Router（ファイルベースルーティング）でタブ構成</li>
+      <li>5つのタブ画面: ダッシュボード / 気分 / セルフケア / ジャーナル / 設定</li>
+      <li>認証画面: ログイン / サインアップ</li>
+      <li>モーダル画面: 料金プラン / 利用規約 / プライバシーポリシー</li>
+      <li>Web版フロントエンド削除（<code>src/app/(auth)/</code>, <code>src/app/(main)/</code>, <code>src/components/</code> 等）</li>
+      <li>バックエンドAPI はそのまま維持（<code>src/app/api/</code>）</li>
+    </ol>
+    <div class="tools-used">
+      <a href="https://expo.dev/" target="_blank" rel="noopener" class="tool-badge">Expo SDK 55</a>
+      <a href="https://reactnative.dev/" target="_blank" rel="noopener" class="tool-badge">React Native 0.83</a>
+      <a href="https://docs.expo.dev/router/introduction/" target="_blank" rel="noopener" class="tool-badge">Expo Router</a>
+    </div>
+    <div class="check-section">
+      ✅ 確認：<code>npx expo run:ios</code> で iPhone 17 Pro シミュレータに全画面表示
+    </div>
+    <div class="warn-section">
+      ⚠️ つまずきポイント：Expo Go は使用不可（Dev Client ビルド必須）。iOS 26 シミュレータは絵文字レンダリングに問題があるため、全UIで Ionicons / MaterialCommunityIcons を使用。
+    </div>
+  </div>
+
+  <!-- ===== Step 6 ===== -->
+  <div class="step-card" id="step6">
+    <div class="step-header">
+      <span class="step-number">6</span>
+      <span class="step-title">ダッシュボード強化（挨拶・ミニチャート・完了状態）</span>
+      <span class="step-date">2026-03-08</span>
+    </div>
+    <p class="step-overview">
+      ダッシュボードに時間帯別挨拶メッセージ、今日のモチベーションメッセージ（14種類ローテーション）、
+      週間気分ミニチャート（カラーバー）、クイックアクション完了状態（チェックマーク表示）を追加。
+    </p>
+    <ol class="step-details">
+      <li>時間帯別挨拶: 朝/昼/夜で異なるメッセージ + 日付・曜日表示</li>
+      <li>今日のメッセージ: 14種類のウェルネスメッセージをローテーション</li>
+      <li>週間気分ミニチャート: 7日分のカラーバー（スコアに応じた色分け）</li>
+      <li>クイックアクション完了状態: 気分/セルフケア/ジャーナル完了時にチェックマーク</li>
+      <li>todayStatus を Zustand app-store で管理（タブ間共有）</li>
+    </ol>
+    <div class="tools-used">
+      <a href="https://zustand-demo.pmnd.rs/" target="_blank" rel="noopener" class="tool-badge">Zustand</a>
+      <a href="https://icons.expo.fyi/" target="_blank" rel="noopener" class="tool-badge">Ionicons</a>
+    </div>
+    <div class="check-section">
+      ✅ 確認：気分記録後にダッシュボードのクイックアクションにチェックマーク表示
+    </div>
+  </div>
+
+  <!-- ===== Step 7 ===== -->
+  <div class="step-card" id="step7">
+    <div class="step-header">
+      <span class="step-number">7</span>
+      <span class="step-title">タブバッジ（未記録通知ドット）</span>
+      <span class="step-date">2026-03-08</span>
+    </div>
+    <p class="step-overview">
+      タブバーに未記録状態を示す赤いドットバッジを追加。気分・セルフケア・ジャーナルタブで
+      今日の記録が未完了の場合にドットが表示され、完了すると消える。
+    </p>
+    <ol class="step-details">
+      <li><code>TabIconWithBadge</code> コンポーネント作成</li>
+      <li>Zustand の todayStatus を参照してバッジ表示/非表示を制御</li>
+      <li>各画面（mood/selfcare/journal）から完了時に todayStatus を更新</li>
+    </ol>
+    <div class="check-section">
+      ✅ 確認：気分記録するとタブの赤ドットが消える
+    </div>
+  </div>
+
+  <!-- ===== Step 8 ===== -->
+  <div class="step-card" id="step8">
+    <div class="step-header">
+      <span class="step-number">8</span>
+      <span class="step-title">オンボーディング画面</span>
+      <span class="step-date">2026-03-08</span>
+    </div>
+    <p class="step-overview">
+      初回起動時に表示される3スライドのオンボーディングを実装。
+      FlatList でスワイプ遷移、スキップボタン、SecureStore で完了状態を永続化。
+    </p>
+    <ol class="step-details">
+      <li><code>app/onboarding.tsx</code> — 3スライド構成（気分/セルフケア/AI対話の紹介）</li>
+      <li><code>app/index.tsx</code> — SecureStore チェック → オンボーディング or ダッシュボードに振り分け</li>
+      <li>スキップボタン + 最終スライドの「始める」ボタン</li>
+      <li>expo-secure-store で <code>onboarding_done</code> フラグ永続化</li>
+    </ol>
+    <div class="tools-used">
+      <a href="https://docs.expo.dev/versions/latest/sdk/securestore/" target="_blank" rel="noopener" class="tool-badge">expo-secure-store</a>
+    </div>
+    <div class="check-section">
+      ✅ 確認：アプリ初回起動時にオンボーディング表示。2回目以降はダッシュボード直行
+    </div>
+  </div>
+
+  <!-- ===== Step 9 ===== -->
+  <div class="step-card" id="step9">
+    <div class="step-header">
+      <span class="step-number">9</span>
+      <span class="step-title">セルフケア履歴表示</span>
+      <span class="step-date">2026-03-08</span>
+    </div>
+    <p class="step-overview">
+      セルフケア画面に直近5回の完了履歴リストを追加。日付、ルーティン種類、所要時間を表示。
+    </p>
+    <ol class="step-details">
+      <li>完了履歴リスト（直近5件）を画面下部に追加</li>
+      <li>ルーティン完了時に todayStatus を Zustand で更新</li>
+    </ol>
+  </div>
+
+  <h2>Phase 3: Pro機能実装（フリーミアムモデル）</h2>
+
+  <!-- ===== Step 10 ===== -->
+  <div class="step-card" id="step10">
+    <div class="step-header">
+      <span class="step-number">10</span>
+      <span class="step-title">AI週間レポート（Pro限定）</span>
+      <span class="step-date">2026-03-08</span>
+    </div>
+    <p class="step-overview">
+      Proプラン限定のAI週間レポート画面を実装。ダッシュボードにレポートカードを配置し、
+      Proユーザーはフルレポートを閲覧、Freeユーザーにはロック表示 + アップグレード導線を提供。
+    </p>
+    <ol class="step-details">
+      <li><code>app/weekly-report.tsx</code> — AI週間レポート画面</li>
+      <li>サマリーカード: 平均気分スコア / 記録日数 / セルフケア回数</li>
+      <li>週間気分チャート（7日分の棒グラフ）</li>
+      <li>AIインサイト3枚カード（感情パターン / ストレス要因 / 推奨アクション）</li>
+      <li>AI推奨カード（LinearGradient 背景）</li>
+      <li>ダッシュボードに Pro: レポート閲覧 / Free: ロック + pricing 遷移</li>
+    </ol>
+    <div class="tools-used">
+      <a href="https://docs.expo.dev/versions/latest/sdk/linear-gradient/" target="_blank" rel="noopener" class="tool-badge">expo-linear-gradient</a>
+    </div>
+    <div class="check-section">
+      ✅ 確認：Proプランで週間レポート表示。Freeプランではロック + 「Proにアップグレード」ボタン
+    </div>
+  </div>
+
+  <!-- ===== Step 11 ===== -->
+  <div class="step-card" id="step11">
+    <div class="step-header">
+      <span class="step-number">11</span>
+      <span class="step-title">AIパーソナライズドルーティン（Pro限定）</span>
+      <span class="step-date">2026-03-08</span>
+    </div>
+    <p class="step-overview">
+      セルフケア画面にAIパーソナライズドルーティン推薦カードを追加。
+      Proユーザーにはグラデーション背景のAI推奨カード、Freeユーザーにはダッシュボーダーのロックカードを表示。
+    </p>
+    <ol class="step-details">
+      <li>Pro: LinearGradient 背景のAI推奨ルーティンカード</li>
+      <li>Free: 点線ボーダーのロックカード + アップグレードボタン</li>
+      <li>AI推奨内容: ルーティン種類 + 所要時間 + 推奨理由</li>
+    </ol>
+  </div>
+
+  <!-- ===== Step 12 ===== -->
+  <div class="step-card" id="step12">
+    <div class="step-header">
+      <span class="step-number">12</span>
+      <span class="step-title">月間ムードマップカレンダー（Pro限定）</span>
+      <span class="step-date">2026-03-08</span>
+    </div>
+    <p class="step-overview">
+      気分トラッキング画面にカレンダービューを追加。日付ごとにカラードットで気分スコアを可視化。
+      Proユーザーはカレンダー閲覧 + 日付タップで詳細表示、Freeユーザーにはロック表示。
+    </p>
+    <ol class="step-details">
+      <li>月間カレンダーグリッド（7列 x 5〜6行）</li>
+      <li>気分スコアに応じたカラードット（赤〜緑のグラデーション）</li>
+      <li>凡例（とても悪い〜とても良い）表示</li>
+      <li>Pro: カレンダー + 日付タップ詳細 / Free: ロック + アップグレードボタン</li>
+    </ol>
+  </div>
+
+  <!-- ===== Step 13 ===== -->
+  <div class="step-card" id="step13">
+    <div class="step-header">
+      <span class="step-number">13</span>
+      <span class="step-title">設定ページ: Free/Pro 機能詳細表示</span>
+      <span class="step-date">2026-03-08</span>
+    </div>
+    <p class="step-overview">
+      設定画面の「アカウント」と「通知設定」の間に「プランの機能」セクションを追加。
+      Freeプランの5機能（チェックマーク付き）と Proプランの6機能（ロックアイコン + 説明文）を一覧表示。
+    </p>
+    <ol class="step-details">
+      <li>Free機能5項目: 毎日の気分記録 / セルフケア5種類 / AIジャーナリング / 7日間履歴 / 基本統計</li>
+      <li>Pro機能6項目: AI週間レポート / パーソナライズドルーティン / 月間ムードマップ / 30日間履歴 / 詳細統計 / 優先サポート</li>
+      <li>LinearGradient アップグレードボタン</li>
+    </ol>
+  </div>
+
+  <h2>Phase 4: UX 改善・FAQ 拡充</h2>
+
+  <!-- ===== Step 14 ===== -->
+  <div class="step-card" id="step14">
+    <div class="step-header">
+      <span class="step-number">14</span>
+      <span class="step-title">料金ページ FAQ 拡充（10問）</span>
+      <span class="step-date">2026-03-08</span>
+    </div>
+    <p class="step-overview">
+      料金プランモーダルの FAQ を4問から10問に拡充。アプリ利用時の一般的な疑問に網羅的に回答。
+    </p>
+    <ol class="step-details">
+      <li>解約方法・返金ポリシー</li>
+      <li>無料トライアルの有無</li>
+      <li>支払い方法</li>
+      <li>Free→Proへのデータ移行</li>
+      <li>AIジャーナリングの仕組み</li>
+      <li>AI週間レポートの詳細</li>
+      <li>セルフケアの所要時間</li>
+      <li>データセキュリティ</li>
+      <li>医療との関係（免責事項）</li>
+      <li>Pro→Free変更時のデータ取り扱い</li>
+    </ol>
+  </div>
+
+  <!-- ===== Step 15 ===== -->
+  <div class="step-card" id="step15">
+    <div class="step-header">
+      <span class="step-number">15</span>
+      <span class="step-title">Web版フロントエンド削除 + ESLint/TypeScript修正</span>
+      <span class="step-date">2026-03-08</span>
+    </div>
+    <p class="step-overview">
+      モバイルアプリ移行に伴い、Web版フロントエンドファイル（src/app/(auth)/, src/app/(main)/, src/components/ 等）を削除。
+      バックエンドAPI（src/app/api/）のみ維持。pre-commit フック対応で ESLint/TypeScript のビルドエラーも修正。
+    </p>
+    <ol class="step-details">
+      <li>Web版フロントエンド削除: <code>src/app/(auth)/</code>, <code>src/app/(main)/</code>, <code>src/components/</code>, <code>src/hooks/</code>, <code>src/stores/</code></li>
+      <li>バックエンドAPI維持: <code>src/app/api/auth/</code>, <code>src/app/api/mood/</code>, <code>src/app/api/journal/</code>, <code>src/app/api/selfcare/</code> 等</li>
+      <li>ESLint config 再作成（削除されていた <code>eslint.config.mjs</code>）</li>
+      <li>tsconfig.json に <code>"mobile"</code> を exclude 追加（パスエイリアス競合防止）</li>
+      <li><code>src/instrumentation.ts</code> から削除済み Sentry インポートを除去</li>
+    </ol>
+    <div class="warn-section">
+      ⚠️ つまずきポイント：Root <code>tsconfig.json</code> の <code>@/*</code> パスエイリアスが <code>./src/*</code> を指すため、<code>mobile/</code> ディレクトリ内のファイルで型エラーが発生。<code>"exclude": ["mobile"]</code> で解決。
+    </div>
+  </div>
+
+  <!-- ===== Step 16 ===== -->
+  <div class="step-card" id="step16">
+    <div class="step-header">
+      <span class="step-number">16</span>
+      <span class="step-title">Git コミット + GitHub Push</span>
+      <span class="step-date">2026-03-08</span>
+    </div>
+    <div class="step-commits">
+      <span class="commit-hash">119f281</span>
+    </div>
+    <p class="step-overview">
+      モバイルアプリ全12画面 + Pro機能3種 + UX改善 + FAQ拡充を含む大型コミットを作成し、
+      GitHub リポジトリ（horii-kentaro/zenflow）に push。
+    </p>
+    <ol class="step-details">
+      <li>コミットメッセージ: <code>feat: モバイルアプリ全12画面実装 + Web版フロントエンド削除</code></li>
+      <li>pre-commit フック（ESLint + TypeScript）を通過</li>
+      <li>GitHub リポジトリ更新確認</li>
+    </ol>
+    <div class="tools-used">
+      <a href="https://github.com/" target="_blank" rel="noopener" class="tool-badge">GitHub</a>
+    </div>
+    <div class="check-section">
+      ✅ 確認：<a class="service-link" href="https://github.com/horii-kentaro/zenflow" target="_blank" rel="noopener">https://github.com/horii-kentaro/zenflow</a> にコード反映
+    </div>
+  </div>
+
+  <footer>
+    Zenflow AIウェルネスコーチ — プロジェクトアーキテクチャレポート セクションB &nbsp;|&nbsp; 更新日: 2026-03-08
+  </footer>
+</body>
+</html>

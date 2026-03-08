@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zenflow — 使用ツール・サービス一覧</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+
+    :root {
+      --bg-primary: #060a1a;
+      --bg-secondary: #0d1230;
+      --bg-card: #111638;
+      --bg-card-hover: #161d48;
+      --accent-cyan: #00d4ff;
+      --accent-purple: #7c5cff;
+      --accent-pink: #ff3cac;
+      --gradient-ai: linear-gradient(135deg, #00d4ff, #7c5cff, #ff3cac);
+      --text-primary: #e8eaf6;
+      --text-secondary: #8892b0;
+      --text-muted: #5a6380;
+      --border-subtle: rgba(124, 92, 255, 0.2);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Noto Sans JP', 'Outfit', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.8;
+      padding: 40px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1, h2, h3, h4 { font-family: 'Outfit', 'Noto Sans JP', sans-serif; }
+    code, pre { font-family: 'JetBrains Mono', monospace; }
+
+    a.service-link {
+      color: var(--accent-cyan);
+      text-decoration: none;
+      border-bottom: 1px dashed rgba(0, 212, 255, 0.4);
+      transition: all 0.2s ease;
+    }
+    a.service-link:hover {
+      color: #fff;
+      border-bottom-color: var(--accent-cyan);
+      text-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+    }
+    a.service-link::after {
+      content: " ↗";
+      font-size: 0.75em;
+      opacity: 0.6;
+    }
+
+    /* Nav */
+    .report-nav {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 40px;
+      padding: 16px 20px;
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+      flex-wrap: wrap;
+    }
+    .report-nav a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.9rem;
+      padding: 6px 14px;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+    .report-nav a:hover {
+      color: var(--accent-cyan);
+      background: rgba(0, 212, 255, 0.1);
+    }
+    .report-nav a.active {
+      color: var(--accent-cyan);
+      background: rgba(0, 212, 255, 0.15);
+      font-weight: 600;
+    }
+
+    /* Title */
+    .page-title {
+      font-size: 2.4rem;
+      font-weight: 800;
+      background: var(--gradient-ai);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 12px;
+    }
+    .page-subtitle {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      margin-bottom: 48px;
+    }
+
+    /* Section heading */
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 48px 0 24px;
+      padding-left: 16px;
+      border-left: 3px solid transparent;
+      border-image: var(--gradient-ai) 1;
+    }
+
+    /* Table */
+    .table-wrapper {
+      overflow-x: auto;
+      margin-bottom: 32px;
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    thead tr {
+      background: var(--bg-secondary);
+    }
+    thead th {
+      color: var(--accent-cyan);
+      font-weight: 600;
+      padding: 14px 16px;
+      text-align: left;
+      white-space: nowrap;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    tbody tr {
+      background: var(--bg-card);
+      transition: background 0.2s ease;
+    }
+    tbody tr:hover {
+      background: var(--bg-card-hover);
+    }
+    tbody td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+    }
+    tbody td:first-child {
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    /* Badge */
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-ok {
+      background: rgba(0, 230, 118, 0.15);
+      color: #00e676;
+      border: 1px solid rgba(0, 230, 118, 0.3);
+    }
+    .badge-plan {
+      background: rgba(255, 214, 0, 0.15);
+      color: #ffd600;
+      border: 1px solid rgba(255, 214, 0, 0.3);
+    }
+    .badge-required {
+      background: rgba(0, 212, 255, 0.1);
+      color: var(--accent-cyan);
+      border: 1px solid rgba(0, 212, 255, 0.2);
+    }
+    .badge-optional {
+      background: rgba(138, 146, 176, 0.1);
+      color: var(--text-secondary);
+      border: 1px solid rgba(138, 146, 176, 0.2);
+    }
+
+    .version-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      background: rgba(124, 92, 255, 0.1);
+      color: var(--accent-purple);
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+
+    .env-key {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      background: rgba(0, 212, 255, 0.08);
+      color: var(--accent-cyan);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .note {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin: 16px 0;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      line-height: 1.7;
+    }
+
+    footer {
+      margin-top: 64px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <nav class="report-nav">
+    <a href="./section-a-tools-and-services.html" class="active">A. ツール・サービス一覧</a>
+    <a href="./section-b-setup-guide.html">B. 構築フロー</a>
+    <a href="./section-c-system-architecture.html">C. システム構成</a>
+  </nav>
+
+  <h1 class="page-title">使用ツール・サービス一覧</h1>
+  <p class="page-subtitle">Zenflow AIウェルネスコーチ プロジェクトで使用している全ツール・サービスのリファレンス（2026-03-08 更新）</p>
+
+  <!-- ===== A-1. 開発ツール ===== -->
+  <h2>A-1. 開発ツール（ローカル環境）</h2>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>カテゴリ</th>
+          <th>ツール名</th>
+          <th>バージョン</th>
+          <th>用途</th>
+          <th>必須/任意</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>ランタイム</td>
+          <td><a class="service-link" href="https://nodejs.org/" target="_blank" rel="noopener">Node.js</a></td>
+          <td><span class="version-tag">v24.x</span></td>
+          <td>JavaScript / TypeScript 実行環境</td>
+          <td><span class="badge badge-required">必須</span></td>
+        </tr>
+        <tr>
+          <td>パッケージマネージャ</td>
+          <td><a class="service-link" href="https://www.npmjs.com/" target="_blank" rel="noopener">npm</a></td>
+          <td>—</td>
+          <td>依存管理（バックエンド + モバイル）</td>
+          <td><span class="badge badge-required">必須</span></td>
+        </tr>
+        <tr>
+          <td>AIコーディング</td>
+          <td><a class="service-link" href="https://docs.anthropic.com/en/docs/claude-code" target="_blank" rel="noopener">Claude Code</a></td>
+          <td>最新</td>
+          <td>プロジェクト構築・コード修正・レビュー</td>
+          <td><span class="badge badge-required">必須</span></td>
+        </tr>
+        <tr>
+          <td>バージョン管理</td>
+          <td><a class="service-link" href="https://git-scm.com/" target="_blank" rel="noopener">Git</a></td>
+          <td>—</td>
+          <td>ソースコード管理</td>
+          <td><span class="badge badge-required">必須</span></td>
+        </tr>
+        <tr>
+          <td>コンテナ</td>
+          <td><a class="service-link" href="https://www.docker.com/" target="_blank" rel="noopener">Docker / Docker Compose</a></td>
+          <td>—</td>
+          <td>ローカルPostgreSQL起動</td>
+          <td><span class="badge badge-required">必須</span></td>
+        </tr>
+        <tr>
+          <td>モバイルシミュレータ</td>
+          <td><a class="service-link" href="https://developer.apple.com/xcode/" target="_blank" rel="noopener">Xcode / iOS Simulator</a></td>
+          <td><span class="version-tag">iOS 26.3</span></td>
+          <td>iPhone 17 Pro シミュレータでの動作確認</td>
+          <td><span class="badge badge-required">必須</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== A-2. フレームワーク・ライブラリ ===== -->
+  <h2>A-2. フレームワーク・ライブラリ</h2>
+
+  <h3 style="color: var(--accent-cyan); margin: 20px 0 12px; font-size: 1.1rem;">mobile/（モバイルアプリ）</h3>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>カテゴリ</th>
+          <th>ライブラリ名</th>
+          <th>バージョン</th>
+          <th>用途</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>フレームワーク</td>
+          <td><a class="service-link" href="https://expo.dev/" target="_blank" rel="noopener">Expo SDK</a></td>
+          <td><span class="version-tag">~55.0.5</span></td>
+          <td>React Native 開発プラットフォーム（Dev Client ビルド）</td>
+        </tr>
+        <tr>
+          <td>UIライブラリ</td>
+          <td><a class="service-link" href="https://reactnative.dev/" target="_blank" rel="noopener">React Native</a></td>
+          <td><span class="version-tag">0.83.2</span></td>
+          <td>ネイティブモバイルUI構築</td>
+        </tr>
+        <tr>
+          <td>UIライブラリ</td>
+          <td><a class="service-link" href="https://react.dev/" target="_blank" rel="noopener">React</a></td>
+          <td><span class="version-tag">19.2.0</span></td>
+          <td>コンポーネントベースのUI構築</td>
+        </tr>
+        <tr>
+          <td>ルーティング</td>
+          <td><a class="service-link" href="https://docs.expo.dev/router/introduction/" target="_blank" rel="noopener">Expo Router</a></td>
+          <td><span class="version-tag">~55.0.4</span></td>
+          <td>ファイルベースルーティング（タブ + モーダル）</td>
+        </tr>
+        <tr>
+          <td>アニメーション</td>
+          <td><a class="service-link" href="https://docs.swmansion.com/react-native-reanimated/" target="_blank" rel="noopener">React Native Reanimated</a></td>
+          <td><span class="version-tag">4.2.1</span></td>
+          <td>ネイティブスレッドアニメーション</td>
+        </tr>
+        <tr>
+          <td>アニメーション</td>
+          <td><a class="service-link" href="https://moti.fyi/" target="_blank" rel="noopener">Moti</a></td>
+          <td><span class="version-tag">^0.30.0</span></td>
+          <td>宣言的アニメーション（Reanimated ラッパー）</td>
+        </tr>
+        <tr>
+          <td>状態管理</td>
+          <td><a class="service-link" href="https://zustand-demo.pmnd.rs/" target="_blank" rel="noopener">Zustand</a></td>
+          <td><span class="version-tag">^5.0.11</span></td>
+          <td>グローバル状態管理（plan, todayStatus, onboardingDone）</td>
+        </tr>
+        <tr>
+          <td>チャート</td>
+          <td><a class="service-link" href="https://github.com/FormidableLabs/victory" target="_blank" rel="noopener">Victory Native</a></td>
+          <td><span class="version-tag">^41.20.2</span></td>
+          <td>気分グラフ・統計チャート表示</td>
+        </tr>
+        <tr>
+          <td>グラフィック</td>
+          <td><a class="service-link" href="https://shopify.github.io/react-native-skia/" target="_blank" rel="noopener">React Native Skia</a></td>
+          <td><span class="version-tag">2.4.18</span></td>
+          <td>高性能2Dグラフィック描画</td>
+        </tr>
+        <tr>
+          <td>ナビゲーション</td>
+          <td><a class="service-link" href="https://reactnavigation.org/" target="_blank" rel="noopener">React Navigation</a></td>
+          <td><span class="version-tag">^7.1.28</span></td>
+          <td>スクリーン遷移・ナビゲーションスタック</td>
+        </tr>
+        <tr>
+          <td>グラデーション</td>
+          <td><a class="service-link" href="https://docs.expo.dev/versions/latest/sdk/linear-gradient/" target="_blank" rel="noopener">expo-linear-gradient</a></td>
+          <td><span class="version-tag">~55.0.8</span></td>
+          <td>Pro機能カード・ボタンのグラデーション表示</td>
+        </tr>
+        <tr>
+          <td>ストレージ</td>
+          <td><a class="service-link" href="https://docs.expo.dev/versions/latest/sdk/securestore/" target="_blank" rel="noopener">expo-secure-store</a></td>
+          <td><span class="version-tag">~55.0.8</span></td>
+          <td>オンボーディング完了状態の永続化</td>
+        </tr>
+        <tr>
+          <td>ハプティクス</td>
+          <td><a class="service-link" href="https://docs.expo.dev/versions/latest/sdk/haptics/" target="_blank" rel="noopener">expo-haptics</a></td>
+          <td><span class="version-tag">~55.0.8</span></td>
+          <td>触覚フィードバック（ボタンタップ時）</td>
+        </tr>
+        <tr>
+          <td>通知</td>
+          <td><a class="service-link" href="https://docs.expo.dev/versions/latest/sdk/notifications/" target="_blank" rel="noopener">expo-notifications</a></td>
+          <td><span class="version-tag">~55.0.11</span></td>
+          <td>プッシュ通知（将来実装）</td>
+        </tr>
+        <tr>
+          <td>Lottte</td>
+          <td><a class="service-link" href="https://github.com/lottie-react-native/lottie-react-native" target="_blank" rel="noopener">lottie-react-native</a></td>
+          <td><span class="version-tag">~7.3.4</span></td>
+          <td>Lottie アニメーション再生</td>
+        </tr>
+        <tr>
+          <td>言語</td>
+          <td><a class="service-link" href="https://www.typescriptlang.org/" target="_blank" rel="noopener">TypeScript</a></td>
+          <td><span class="version-tag">~5.9.2</span></td>
+          <td>型安全な開発</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="color: var(--accent-purple); margin: 20px 0 12px; font-size: 1.1rem;">src/（バックエンド API）</h3>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>カテゴリ</th>
+          <th>ライブラリ名</th>
+          <th>バージョン</th>
+          <th>用途</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>フレームワーク</td>
+          <td><a class="service-link" href="https://nextjs.org/" target="_blank" rel="noopener">Next.js</a></td>
+          <td><span class="version-tag">16.1.6</span></td>
+          <td>App Router ベースの API サーバー</td>
+        </tr>
+        <tr>
+          <td>認証</td>
+          <td><a class="service-link" href="https://authjs.dev/" target="_blank" rel="noopener">NextAuth.js v5</a></td>
+          <td><span class="version-tag">^5.0.0-beta.30</span></td>
+          <td>Credentials + JWT 認証</td>
+        </tr>
+        <tr>
+          <td>ORM</td>
+          <td><a class="service-link" href="https://www.prisma.io/" target="_blank" rel="noopener">Prisma</a></td>
+          <td><span class="version-tag">^6.19.2</span></td>
+          <td>PostgreSQL データベースORM</td>
+        </tr>
+        <tr>
+          <td>AI</td>
+          <td><a class="service-link" href="https://docs.anthropic.com/en/docs/sdks" target="_blank" rel="noopener">@anthropic-ai/sdk</a></td>
+          <td><span class="version-tag">^0.78.0</span></td>
+          <td>Claude API（AIジャーナリング・週間レポート）</td>
+        </tr>
+        <tr>
+          <td>決済</td>
+          <td><a class="service-link" href="https://stripe.com/docs/api" target="_blank" rel="noopener">Stripe</a></td>
+          <td><span class="version-tag">^20.3.1</span></td>
+          <td>サブスクリプション決済（月額980円）</td>
+        </tr>
+        <tr>
+          <td>メール</td>
+          <td><a class="service-link" href="https://resend.com/docs/send-with-nodejs" target="_blank" rel="noopener">Resend</a></td>
+          <td><span class="version-tag">^6.9.2</span></td>
+          <td>メール認証・通知メール送信</td>
+        </tr>
+        <tr>
+          <td>バリデーション</td>
+          <td><a class="service-link" href="https://zod.dev/" target="_blank" rel="noopener">Zod</a></td>
+          <td><span class="version-tag">^4.3.6</span></td>
+          <td>API リクエストのバリデーション</td>
+        </tr>
+        <tr>
+          <td>パスワード</td>
+          <td><a class="service-link" href="https://github.com/dcodeIO/bcrypt.js" target="_blank" rel="noopener">bcryptjs</a></td>
+          <td><span class="version-tag">^3.0.3</span></td>
+          <td>パスワードハッシュ化</td>
+        </tr>
+        <tr>
+          <td>チャート</td>
+          <td><a class="service-link" href="https://recharts.org/" target="_blank" rel="noopener">Recharts</a></td>
+          <td><span class="version-tag">^3.7.0</span></td>
+          <td>Web版ダッシュボードチャート（バックエンド残存）</td>
+        </tr>
+        <tr>
+          <td>状態管理</td>
+          <td><a class="service-link" href="https://zustand-demo.pmnd.rs/" target="_blank" rel="noopener">Zustand</a></td>
+          <td><span class="version-tag">^5.0.11</span></td>
+          <td>クライアント状態管理（persist middleware）</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="color: #00e676; margin: 20px 0 12px; font-size: 1.1rem;">テスト</h3>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>カテゴリ</th>
+          <th>ライブラリ名</th>
+          <th>バージョン</th>
+          <th>用途</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>ユニットテスト</td>
+          <td><a class="service-link" href="https://vitest.dev/" target="_blank" rel="noopener">Vitest</a></td>
+          <td><span class="version-tag">^4.0.18</span></td>
+          <td>ユニット / API / コンポーネントテスト（20ファイル・195テスト）</td>
+        </tr>
+        <tr>
+          <td>E2Eテスト</td>
+          <td><a class="service-link" href="https://playwright.dev/" target="_blank" rel="noopener">Playwright</a></td>
+          <td><span class="version-tag">^1.58.2</span></td>
+          <td>E2Eテスト</td>
+        </tr>
+        <tr>
+          <td>テストユーティリティ</td>
+          <td><a class="service-link" href="https://testing-library.com/docs/react-testing-library/intro/" target="_blank" rel="noopener">Testing Library</a></td>
+          <td><span class="version-tag">^16.3.2</span></td>
+          <td>React コンポーネントテスト</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== A-3. 外部 API ===== -->
+  <h2>A-3. 外部API・SaaS</h2>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>サービス名</th>
+          <th>用途</th>
+          <th>料金体系</th>
+          <th>環境変数キー</th>
+          <th>備考</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><a class="service-link" href="https://www.anthropic.com/api" target="_blank" rel="noopener">Anthropic API（Claude）</a></td>
+          <td>AIジャーナリング対話・AI週間レポート・パーソナライズドルーティン</td>
+          <td><a class="service-link" href="https://www.anthropic.com/pricing" target="_blank" rel="noopener">従量課金</a></td>
+          <td><span class="env-key">ANTHROPIC_API_KEY</span></td>
+          <td>claude-sonnet-4-5-20250514 使用</td>
+        </tr>
+        <tr>
+          <td><a class="service-link" href="https://stripe.com/" target="_blank" rel="noopener">Stripe</a></td>
+          <td>Proプラン（月額980円）のサブスクリプション決済</td>
+          <td><a class="service-link" href="https://stripe.com/jp/pricing" target="_blank" rel="noopener">決済手数料 3.6%</a></td>
+          <td><span class="env-key">STRIPE_SECRET_KEY</span><br><span class="env-key">STRIPE_WEBHOOK_SECRET</span></td>
+          <td>Checkout Session + Webhook</td>
+        </tr>
+        <tr>
+          <td><a class="service-link" href="https://resend.com/" target="_blank" rel="noopener">Resend</a></td>
+          <td>メール認証・サブスク通知メール</td>
+          <td><a class="service-link" href="https://resend.com/pricing" target="_blank" rel="noopener">Free: 月3,000通</a></td>
+          <td><span class="env-key">RESEND_API_KEY</span></td>
+          <td>ドメイン認証済み</td>
+        </tr>
+        <tr>
+          <td><a class="service-link" href="https://www.postgresql.org/" target="_blank" rel="noopener">PostgreSQL</a></td>
+          <td>ユーザー・気分・ジャーナル・セルフケアデータ永続化</td>
+          <td>ローカル: Docker / 本番: Vercel Postgres</td>
+          <td><span class="env-key">DATABASE_URL</span></td>
+          <td>Prisma 6 ORM 経由</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <strong>補足：</strong>Anthropic API は AIジャーナリングの対話コーチ（claude-sonnet-4-5-20250514）として使用。Proプランではさらに AI週間レポート生成・パーソナライズドルーティン推薦にも活用。<br>
+    ANTHROPIC_API_KEY にはダミー値が入っているため、本番運用時は実際のキーに差し替えが必要。<br><br>
+    <strong>Stripe：</strong>フリーミアムモデル（無料 → Pro 月額980円）。Stripe Checkout + Webhook でサブスクリプション管理。未設定時は「決済機能は準備中です」メッセージを表示。<br><br>
+    <strong>モバイルアプリ：</strong>Expo SDK 55 + Dev Client ビルド（Expo Go は使用不可）。iPhone 17 Pro シミュレータ（iOS 26.3）で動作確認。iOS 26 シミュレータは絵文字レンダリング不可のため、全UIで Ionicons / MaterialCommunityIcons を使用。<br><br>
+    <strong>状態管理：</strong>Zustand で plan（free/premium）、todayStatus（mood/selfcare/journal完了状態）、onboardingDone をグローバル管理。タブ間の状態共有（バッジ表示等）に活用。
+  </div>
+
+  <!-- ===== A-4. インフラ ===== -->
+  <h2>A-4. インフラ・ホスティング</h2>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>サービス名</th>
+          <th>用途</th>
+          <th>料金体系</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><a class="service-link" href="https://vercel.com/" target="_blank" rel="noopener">Vercel</a></td>
+          <td>バックエンドAPI ホスティング（Next.js API Routes）</td>
+          <td><a class="service-link" href="https://vercel.com/pricing" target="_blank" rel="noopener">Hobby: 無料</a></td>
+        </tr>
+        <tr>
+          <td><a class="service-link" href="https://github.com/" target="_blank" rel="noopener">GitHub</a></td>
+          <td>ソースコード管理（<a class="service-link" href="https://github.com/horii-kentaro/zenflow" target="_blank" rel="noopener">horii-kentaro/zenflow</a>）</td>
+          <td><a class="service-link" href="https://github.com/pricing" target="_blank" rel="noopener">Free</a></td>
+        </tr>
+        <tr>
+          <td><a class="service-link" href="https://www.docker.com/" target="_blank" rel="noopener">Docker</a></td>
+          <td>ローカル PostgreSQL コンテナ</td>
+          <td>無料</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <strong>バックエンドURL：</strong>
+    <a class="service-link" href="https://zenflow-alpha.vercel.app" target="_blank" rel="noopener">https://zenflow-alpha.vercel.app</a>（Vercel 自動デプロイ）<br>
+    Git push で自動デプロイ。API Routes は <code>/api/*</code> パスで提供。<br>
+    モバイルアプリは将来的に EAS Build → App Store / Google Play でリリース予定。
+  </div>
+
+  <!-- ===== A-5. 運用・テスト ===== -->
+  <h2>A-5. 運用・テスト</h2>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>ツール名</th>
+          <th>用途</th>
+          <th>状態</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><a class="service-link" href="https://vitest.dev/" target="_blank" rel="noopener">Vitest テストスイート</a></td>
+          <td>ユニット / API / コンポーネントテスト（20ファイル・195テスト）</td>
+          <td><span class="badge badge-ok">実装済み</span></td>
+        </tr>
+        <tr>
+          <td><a class="service-link" href="https://playwright.dev/" target="_blank" rel="noopener">Playwright E2E テスト</a></td>
+          <td>E2Eテスト</td>
+          <td><span class="badge badge-ok">実装済み</span></td>
+        </tr>
+        <tr>
+          <td>Husky + lint-staged</td>
+          <td>pre-commit フック（ESLint + TypeScript チェック）</td>
+          <td><span class="badge badge-ok">実装済み</span></td>
+        </tr>
+        <tr>
+          <td>エラーハンドリング</td>
+          <td>全APIルートのtry-catch + 統一レスポンス形式</td>
+          <td><span class="badge badge-ok">実装済み</span></td>
+        </tr>
+        <tr>
+          <td>セキュリティ</td>
+          <td>CORS設定・レートリミット・JWT認証・パスワードハッシュ</td>
+          <td><span class="badge badge-ok">実装済み</span></td>
+        </tr>
+        <tr>
+          <td>パフォーマンス最適化</td>
+          <td>バンドル分析・キャッシュ戦略・遅延ロード</td>
+          <td><span class="badge badge-ok">実装済み</span></td>
+        </tr>
+        <tr>
+          <td>アクセシビリティ</td>
+          <td>ARIA属性・キーボードナビゲーション・スクリーンリーダー対応</td>
+          <td><span class="badge badge-ok">実装済み</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== A-6. 環境変数 ===== -->
+  <h2>A-6. 環境変数一覧</h2>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>環境変数キー</th>
+          <th>用途</th>
+          <th>設定場所</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="env-key">DATABASE_URL</span></td>
+          <td>PostgreSQL 接続URL</td>
+          <td>.env + .env.local</td>
+        </tr>
+        <tr>
+          <td><span class="env-key">AUTH_SECRET</span></td>
+          <td>NextAuth.js JWT 署名鍵</td>
+          <td>.env.local</td>
+        </tr>
+        <tr>
+          <td><span class="env-key">AUTH_URL</span></td>
+          <td>NextAuth.js ベースURL</td>
+          <td>.env.local</td>
+        </tr>
+        <tr>
+          <td><span class="env-key">ANTHROPIC_API_KEY</span></td>
+          <td>Claude API 認証</td>
+          <td>.env.local</td>
+        </tr>
+        <tr>
+          <td><span class="env-key">STRIPE_SECRET_KEY</span></td>
+          <td>Stripe サーバーサイド認証</td>
+          <td>.env.local / Vercel</td>
+        </tr>
+        <tr>
+          <td><span class="env-key">STRIPE_WEBHOOK_SECRET</span></td>
+          <td>Stripe Webhook 署名検証</td>
+          <td>.env.local / Vercel</td>
+        </tr>
+        <tr>
+          <td><span class="env-key">NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY</span></td>
+          <td>Stripe クライアントサイド公開鍵</td>
+          <td>.env.local / Vercel</td>
+        </tr>
+        <tr>
+          <td><span class="env-key">RESEND_API_KEY</span></td>
+          <td>Resend メール配信 API 認証</td>
+          <td>.env.local / Vercel</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <strong>注意：</strong>Prisma CLI は <code>.env.local</code> を読めないため、<code>.env</code> にも <code>DATABASE_URL</code> を記載する必要があります。<br>
+    ローカル開発は <code>docker compose up -d</code> で PostgreSQL を起動してから <code>npm run dev</code> で開発サーバーを起動してください。
+  </div>
+
+  <footer>
+    Zenflow AIウェルネスコーチ — プロジェクトアーキテクチャレポート セクションA &nbsp;|&nbsp; 更新日: 2026-03-08
+  </footer>
+</body>
+</html>

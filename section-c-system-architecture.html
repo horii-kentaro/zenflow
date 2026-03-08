@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zenflow — システムアーキテクチャ</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+
+    :root {
+      --bg-primary: #060a1a;
+      --bg-secondary: #0d1230;
+      --bg-card: #111638;
+      --bg-card-hover: #161d48;
+      --accent-cyan: #00d4ff;
+      --accent-purple: #7c5cff;
+      --accent-pink: #ff3cac;
+      --gradient-ai: linear-gradient(135deg, #00d4ff, #7c5cff, #ff3cac);
+      --text-primary: #e8eaf6;
+      --text-secondary: #8892b0;
+      --text-muted: #5a6380;
+      --border-subtle: rgba(124, 92, 255, 0.2);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Noto Sans JP', 'Outfit', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.8;
+      padding: 40px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1, h2, h3, h4 { font-family: 'Outfit', 'Noto Sans JP', sans-serif; }
+    code, pre { font-family: 'JetBrains Mono', monospace; }
+
+    a.service-link {
+      color: var(--accent-cyan);
+      text-decoration: none;
+      border-bottom: 1px dashed rgba(0, 212, 255, 0.4);
+      transition: all 0.2s ease;
+    }
+    a.service-link:hover {
+      color: #fff;
+      border-bottom-color: var(--accent-cyan);
+      text-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+    }
+    a.service-link::after {
+      content: " ↗";
+      font-size: 0.75em;
+      opacity: 0.6;
+    }
+
+    /* Nav */
+    .report-nav {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 40px;
+      padding: 16px 20px;
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+      flex-wrap: wrap;
+    }
+    .report-nav a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.9rem;
+      padding: 6px 14px;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+    .report-nav a:hover {
+      color: var(--accent-cyan);
+      background: rgba(0, 212, 255, 0.1);
+    }
+    .report-nav a.active {
+      color: var(--accent-cyan);
+      background: rgba(0, 212, 255, 0.15);
+      font-weight: 600;
+    }
+
+    .page-title {
+      font-size: 2.4rem;
+      font-weight: 800;
+      background: var(--gradient-ai);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 12px;
+    }
+    .page-subtitle {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      margin-bottom: 48px;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 48px 0 24px;
+      padding-left: 16px;
+      border-left: 3px solid transparent;
+      border-image: var(--gradient-ai) 1;
+    }
+
+    /* Mermaid container */
+    .mermaid-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 32px;
+      margin: 24px 0;
+      overflow-x: auto;
+    }
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Timeline */
+    .timeline {
+      position: relative;
+      padding-left: 40px;
+      margin: 24px 0 32px;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 16px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(to bottom, var(--accent-cyan), var(--accent-purple), var(--accent-pink));
+    }
+    .timeline-item {
+      position: relative;
+      margin-bottom: 24px;
+      padding: 16px 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      transition: border-color 0.2s ease;
+    }
+    .timeline-item:hover {
+      border-color: rgba(0, 212, 255, 0.3);
+    }
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -32px;
+      top: 22px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent-cyan);
+      border: 2px solid var(--bg-primary);
+      box-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+    }
+    .timeline-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--accent-cyan);
+      font-weight: 600;
+    }
+    .timeline-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 4px 0;
+    }
+    .timeline-desc {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    .timeline-duration {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Code block */
+    .code-block {
+      background: #0a0f2e;
+      border-left: 3px solid var(--accent-cyan);
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin: 16px 0;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--text-primary);
+      line-height: 1.7;
+    }
+    .code-block .comment { color: var(--text-muted); }
+    .code-block .type { color: var(--accent-cyan); }
+    .code-block .key { color: var(--accent-purple); }
+    .code-block .string { color: #00e676; }
+
+    /* Table */
+    .table-wrapper {
+      overflow-x: auto;
+      margin-bottom: 32px;
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    thead tr {
+      background: var(--bg-secondary);
+    }
+    thead th {
+      color: var(--accent-cyan);
+      font-weight: 600;
+      padding: 14px 16px;
+      text-align: left;
+      white-space: nowrap;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    tbody tr {
+      background: var(--bg-card);
+      transition: background 0.2s ease;
+    }
+    tbody tr:hover {
+      background: var(--bg-card-hover);
+    }
+    tbody td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    /* Cost cards */
+    .cost-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      margin: 24px 0;
+    }
+    .cost-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 20px;
+      transition: all 0.2s ease;
+    }
+    .cost-card:hover {
+      border-color: rgba(0, 212, 255, 0.3);
+      transform: translateY(-2px);
+    }
+    .cost-card-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .cost-card-plan {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+    .cost-card-price {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 800;
+      background: var(--gradient-ai);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .cost-card-note {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 8px;
+    }
+    .cost-total {
+      background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(124, 92, 255, 0.1));
+      border: 1px solid rgba(0, 212, 255, 0.3);
+    }
+
+    /* Screen cards grid */
+    .screen-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+      margin: 24px 0;
+    }
+    .screen-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 16px 20px;
+      transition: all 0.2s ease;
+    }
+    .screen-card:hover {
+      border-color: rgba(0, 212, 255, 0.3);
+    }
+    .screen-card-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .screen-card-path {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--accent-cyan);
+      margin-bottom: 8px;
+    }
+    .screen-card-desc {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    .screen-card-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+    .badge-free {
+      background: rgba(0, 230, 118, 0.15);
+      color: #00e676;
+      border: 1px solid rgba(0, 230, 118, 0.3);
+    }
+    .badge-pro {
+      background: rgba(124, 92, 255, 0.15);
+      color: var(--accent-purple);
+      border: 1px solid rgba(124, 92, 255, 0.3);
+    }
+
+    .env-key {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      background: rgba(0, 212, 255, 0.08);
+      color: var(--accent-cyan);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-ok {
+      background: rgba(0, 230, 118, 0.15);
+      color: #00e676;
+      border: 1px solid rgba(0, 230, 118, 0.3);
+    }
+
+    .note {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin: 16px 0;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      line-height: 1.7;
+    }
+
+    footer {
+      margin-top: 64px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <nav class="report-nav">
+    <a href="./section-a-tools-and-services.html">A. ツール・サービス一覧</a>
+    <a href="./section-b-setup-guide.html">B. 構築フロー</a>
+    <a href="./section-c-system-architecture.html" class="active">C. システム構成</a>
+  </nav>
+
+  <h1 class="page-title">システムアーキテクチャ</h1>
+  <p class="page-subtitle">モバイルアプリ・バックエンドAPI・データベース・外部サービス連携・画面構成・コスト試算（2026-03-08 更新）</p>
+
+  <!-- ===== C-1 全体アーキテクチャ ===== -->
+  <h2>C-1. システム全体のアーキテクチャ図</h2>
+
+  <div class="mermaid-container">
+    <pre class="mermaid">
+graph LR
+  subgraph mobile["Mobile App<br/>Expo SDK 55 + React Native 0.83"]
+    Onboarding["Onboarding<br/>3 slides"] --> TabNav
+    TabNav["Tab Navigator<br/>5 tabs"]
+    TabNav --> Dashboard["Dashboard<br/>挨拶・進捗・チャート"]
+    TabNav --> Mood["Mood<br/>気分記録・カレンダー"]
+    TabNav --> Selfcare["Selfcare<br/>ルーティン・履歴"]
+    TabNav --> Journal["Journal<br/>AI対話"]
+    TabNav --> Settings["Settings<br/>プラン・通知"]
+    Dashboard --> WeeklyReport["Weekly Report<br/>Pro限定"]
+    TabNav --> Pricing["Pricing<br/>料金プラン"]
+    Zustand["Zustand Store<br/>plan / todayStatus"] -.-> TabNav
+    SecureStore["SecureStore<br/>onboarding_done"] -.-> Onboarding
+  end
+
+  subgraph backend["Backend API<br/>Next.js 16 (App Router)"]
+    AuthAPI["POST /api/auth/*<br/>認証・プロフィール"]
+    MoodAPI["POST /api/mood<br/>GET /api/mood"]
+    SelfcareAPI["POST /api/selfcare/*<br/>セルフケア記録"]
+    JournalAPI["POST /api/journal<br/>PATCH /api/journal/[id]"]
+    SubscriptionAPI["POST /api/subscription<br/>GET /api/subscription"]
+    UsageAPI["GET /api/usage<br/>利用残数"]
+    StripeAPI["POST /api/stripe/*<br/>Checkout・Webhook"]
+    HealthAPI["GET /api/health"]
+  end
+
+  subgraph database["Database<br/>PostgreSQL"]
+    Users["User<br/>email / password / plan"]
+    MoodEntries["MoodEntry<br/>score / context / date"]
+    SelfcareRecords["SelfcareRecord<br/>type / duration"]
+    Journals["Journal<br/>messages / title / isFavorite"]
+    Subscriptions["Subscription<br/>plan / stripeId / status"]
+  end
+
+  subgraph external["External Services"]
+    Claude["Anthropic API<br/>Claude claude-sonnet-4-5-20250514"]
+    Stripe["Stripe<br/>Checkout + Webhook"]
+    Resend["Resend<br/>メール認証・通知"]
+  end
+
+  mobile -->|"REST API"| backend
+  backend --> database
+  JournalAPI --> Claude
+  StripeAPI --> Stripe
+  AuthAPI --> Resend
+  backend -->|"Vercel"| Vercel["Vercel CDN<br/>zenflow-alpha.vercel.app"]
+    </pre>
+  </div>
+
+  <!-- ===== C-2 画面構成 ===== -->
+  <h2>C-2. モバイルアプリ画面構成（全12画面）</h2>
+  <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.9rem;">
+    Expo Router のファイルベースルーティングに基づく画面構成
+  </p>
+
+  <div class="screen-grid">
+    <div class="screen-card">
+      <div class="screen-card-name">Entry Point</div>
+      <div class="screen-card-path">app/index.tsx</div>
+      <div class="screen-card-desc">SecureStore チェック → オンボーディング or ダッシュボードに振り分け</div>
+      <span class="screen-card-badge badge-free">Free</span>
+    </div>
+
+    <div class="screen-card">
+      <div class="screen-card-name">Onboarding</div>
+      <div class="screen-card-path">app/onboarding.tsx</div>
+      <div class="screen-card-desc">初回起動時の3スライド紹介（FlatList + SecureStore永続化）</div>
+      <span class="screen-card-badge badge-free">Free</span>
+    </div>
+
+    <div class="screen-card">
+      <div class="screen-card-name">Dashboard</div>
+      <div class="screen-card-path">app/(tabs)/dashboard.tsx</div>
+      <div class="screen-card-desc">挨拶・今日のメッセージ・進捗カード・週間ミニチャート・クイックアクション・AI週間レポートカード</div>
+      <span class="screen-card-badge badge-free">Free</span>
+    </div>
+
+    <div class="screen-card">
+      <div class="screen-card-name">Mood</div>
+      <div class="screen-card-path">app/(tabs)/mood.tsx</div>
+      <div class="screen-card-desc">気分スコア記録・コンテキストタグ選択・月間ムードマップカレンダー</div>
+      <span class="screen-card-badge badge-free">Free</span>
+      <span class="screen-card-badge badge-pro" style="margin-left: 4px;">Pro: カレンダー</span>
+    </div>
+
+    <div class="screen-card">
+      <div class="screen-card-name">Selfcare</div>
+      <div class="screen-card-path">app/(tabs)/selfcare.tsx</div>
+      <div class="screen-card-desc">5種類ルーティン選択・タイマー・完了履歴・AIパーソナライズドルーティン</div>
+      <span class="screen-card-badge badge-free">Free</span>
+      <span class="screen-card-badge badge-pro" style="margin-left: 4px;">Pro: AI推奨</span>
+    </div>
+
+    <div class="screen-card">
+      <div class="screen-card-name">Journal</div>
+      <div class="screen-card-path">app/(tabs)/journal.tsx</div>
+      <div class="screen-card-desc">AIチャット対話・おすすめトピック・ジャーナル一覧・検索・お気に入り</div>
+      <span class="screen-card-badge badge-free">Free</span>
+    </div>
+
+    <div class="screen-card">
+      <div class="screen-card-name">Settings</div>
+      <div class="screen-card-path">app/(tabs)/settings.tsx</div>
+      <div class="screen-card-desc">アカウント・プラン機能一覧・通知設定・利用規約/プライバシー</div>
+      <span class="screen-card-badge badge-free">Free</span>
+    </div>
+
+    <div class="screen-card">
+      <div class="screen-card-name">Weekly Report</div>
+      <div class="screen-card-path">app/weekly-report.tsx</div>
+      <div class="screen-card-desc">AI週間レポート（平均気分・記録日数・セルフケア回数・AIインサイト3枚）</div>
+      <span class="screen-card-badge badge-pro">Pro限定</span>
+    </div>
+
+    <div class="screen-card">
+      <div class="screen-card-name">Pricing</div>
+      <div class="screen-card-path">app/pricing.tsx</div>
+      <div class="screen-card-desc">料金プラン比較・FAQ 10問・アップグレードボタン</div>
+      <span class="screen-card-badge badge-free">Free</span>
+    </div>
+
+    <div class="screen-card">
+      <div class="screen-card-name">Login</div>
+      <div class="screen-card-path">app/(auth)/login.tsx</div>
+      <div class="screen-card-desc">メール + パスワード認証</div>
+      <span class="screen-card-badge badge-free">Free</span>
+    </div>
+
+    <div class="screen-card">
+      <div class="screen-card-name">Terms</div>
+      <div class="screen-card-path">app/terms.tsx</div>
+      <div class="screen-card-desc">利用規約ページ</div>
+      <span class="screen-card-badge badge-free">Free</span>
+    </div>
+
+    <div class="screen-card">
+      <div class="screen-card-name">Privacy</div>
+      <div class="screen-card-path">app/privacy.tsx</div>
+      <div class="screen-card-desc">プライバシーポリシーページ</div>
+      <span class="screen-card-badge badge-free">Free</span>
+    </div>
+  </div>
+
+  <!-- ===== C-3 ユーザーフロー ===== -->
+  <h2>C-3. ユーザーフローのタイムライン</h2>
+  <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.9rem;">
+    典型的な1日の利用フロー
+  </p>
+
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="timeline-time">初回起動</div>
+      <div class="timeline-title">オンボーディング（3スライド）</div>
+      <div class="timeline-desc">
+        アプリの主要機能を紹介するスライド → 「始める」タップ → SecureStore に完了記録 → ダッシュボードへ
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-time">朝（起動時）</div>
+      <div class="timeline-title">ダッシュボード確認</div>
+      <div class="timeline-desc">
+        「おはようございます」時間帯挨拶 → 今日のメッセージ表示 → クイックアクション3ボタン（未完了状態）→ タブに赤ドットバッジ表示
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-time">朝（1分）</div>
+      <div class="timeline-title">気分記録</div>
+      <div class="timeline-desc">
+        5段階スコア選択 → コンテキストタグ（仕事/健康/睡眠等）選択 → 保存 →<br>
+        ダッシュボードのクイックアクションにチェックマーク → タブの赤ドット消滅
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-time">朝（3〜5分）</div>
+      <div class="timeline-title">セルフケアルーティン</div>
+      <div class="timeline-desc">
+        ルーティン種類選択（呼吸法/ストレッチ/マインドフルネス/ボディスキャン/おまかせ）→ タイマー開始 → ステップ進行 → 完了記録<br>
+        <strong>Pro:</strong> AIパーソナライズドルーティン推薦カード表示
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-time">夜（3〜5分）</div>
+      <div class="timeline-title">AIジャーナリング</div>
+      <div class="timeline-desc">
+        おすすめトピックから選択 or 自由入力 → Claude API による対話 → AI が共感・質問・アドバイス → ジャーナル保存
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-time">週末</div>
+      <div class="timeline-title">振り返り（Pro限定）</div>
+      <div class="timeline-desc">
+        <strong>AI週間レポート:</strong> 平均気分スコア・記録日数・セルフケア回数 → AIインサイト3枚（感情パターン/ストレス要因/推奨アクション）<br>
+        <strong>月間ムードマップ:</strong> カレンダー上にカラードットで気分推移を可視化
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== C-4 データモデル ===== -->
+  <h2>C-4. データモデル（Prisma スキーマ）</h2>
+  <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.9rem;">
+    <code>prisma/schema.prisma</code> から抽出した主要モデル
+  </p>
+
+  <div class="code-block">
+<span class="comment">// prisma/schema.prisma — 主要モデル</span>
+
+<span class="type">model</span> <span class="key">User</span> {
+  <span class="key">id</span>                <span class="type">String</span>    <span class="comment">@id @default(cuid())</span>
+  <span class="key">name</span>              <span class="type">String?</span>
+  <span class="key">email</span>             <span class="type">String</span>    <span class="comment">@unique</span>
+  <span class="key">hashedPassword</span>    <span class="type">String</span>
+  <span class="key">emailVerified</span>     <span class="type">DateTime?</span>
+  <span class="key">notificationPrefs</span> <span class="type">Json?</span>     <span class="comment">// {paymentNotify: bool, weeklyReport: bool}</span>
+  <span class="key">subscription</span>      <span class="type">Subscription?</span>
+  <span class="key">moodEntries</span>       <span class="type">MoodEntry[]</span>
+  <span class="key">selfcareRecords</span>   <span class="type">SelfcareRecord[]</span>
+  <span class="key">journals</span>          <span class="type">Journal[]</span>
+}
+
+<span class="type">model</span> <span class="key">Subscription</span> {
+  <span class="key">id</span>                <span class="type">String</span>    <span class="comment">@id @default(cuid())</span>
+  <span class="key">plan</span>              <span class="type">String</span>    <span class="comment">// "free" | "premium"</span>
+  <span class="key">stripeCustomerId</span>  <span class="type">String?</span>
+  <span class="key">stripeSubId</span>       <span class="type">String?</span>
+  <span class="key">status</span>            <span class="type">String</span>    <span class="comment">// "active" | "canceled" | ...</span>
+  <span class="key">userId</span>            <span class="type">String</span>    <span class="comment">@unique</span>
+}
+
+<span class="type">model</span> <span class="key">MoodEntry</span> {
+  <span class="key">id</span>       <span class="type">String</span>    <span class="comment">@id @default(cuid())</span>
+  <span class="key">score</span>    <span class="type">Int</span>       <span class="comment">// 1〜5</span>
+  <span class="key">note</span>     <span class="type">String?</span>
+  <span class="key">context</span>  <span class="type">String?</span>   <span class="comment">// "work" | "relationship" | "health" | ...</span>
+  <span class="key">date</span>     <span class="type">DateTime</span>  <span class="comment">@db.Date</span>
+  <span class="key">userId</span>   <span class="type">String</span>
+}
+
+<span class="type">model</span> <span class="key">SelfcareRecord</span> {
+  <span class="key">id</span>        <span class="type">String</span>    <span class="comment">@id @default(cuid())</span>
+  <span class="key">type</span>      <span class="type">String</span>    <span class="comment">// "breathing" | "stretch" | "mindfulness" | "bodyscan"</span>
+  <span class="key">duration</span>  <span class="type">Int</span>       <span class="comment">// 秒数</span>
+  <span class="key">date</span>      <span class="type">DateTime</span>  <span class="comment">@db.Date</span>
+  <span class="key">userId</span>    <span class="type">String</span>
+}
+
+<span class="type">model</span> <span class="key">Journal</span> {
+  <span class="key">id</span>         <span class="type">String</span>    <span class="comment">@id @default(cuid())</span>
+  <span class="key">title</span>      <span class="type">String</span>    <span class="comment">@default("無題のジャーナル")</span>
+  <span class="key">messages</span>   <span class="type">Json</span>      <span class="comment">// [{role: "user"|"assistant", content: string}]</span>
+  <span class="key">mood</span>       <span class="type">String?</span>   <span class="comment">// AI分析による感情ラベル</span>
+  <span class="key">isFavorite</span> <span class="type">Boolean</span>   <span class="comment">@default(false)</span>
+  <span class="key">date</span>       <span class="type">DateTime</span>  <span class="comment">@db.Date</span>
+  <span class="key">userId</span>     <span class="type">String</span>
+}
+  </div>
+
+  <div class="note">
+    <strong>日付フィールド：</strong>DateTime <code>@db.Date</code> 型（PostgreSQL の DATE 型）。API レスポンスでは ISO 文字列になるため、クライアント側では <code>formatDate()</code> で "YYYY-MM-DD" に変換。<br><br>
+    <strong>Zustand Store（モバイル側）：</strong><br>
+    <code>plan</code>: "free" | "premium" — Pro/Free のUIゲーティングに使用<br>
+    <code>todayStatus</code>: {mood: bool, selfcare: bool, journal: bool} — タブバッジ + クイックアクション完了状態<br>
+    <code>onboardingDone</code>: bool — オンボーディング完了フラグ（SecureStore と同期）
+  </div>
+
+  <!-- ===== C-5 API エンドポイント ===== -->
+  <h2>C-5. バックエンド API エンドポイント</h2>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>エンドポイント</th>
+          <th>メソッド</th>
+          <th>用途</th>
+          <th>認証</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>/api/auth/[...nextauth]</code></td>
+          <td>GET / POST</td>
+          <td>NextAuth.js 認証（ログイン/登録/セッション）</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><code>/api/auth/profile</code></td>
+          <td>PATCH</td>
+          <td>プロフィール更新（名前変更）</td>
+          <td>JWT</td>
+        </tr>
+        <tr>
+          <td><code>/api/mood</code></td>
+          <td>GET / POST</td>
+          <td>気分エントリーの取得・作成</td>
+          <td>JWT</td>
+        </tr>
+        <tr>
+          <td><code>/api/selfcare/history</code></td>
+          <td>GET</td>
+          <td>セルフケア履歴（Free: 7日 / Pro: 30日）</td>
+          <td>JWT</td>
+        </tr>
+        <tr>
+          <td><code>/api/selfcare/today-status</code></td>
+          <td>GET</td>
+          <td>今日のセルフケア完了状態</td>
+          <td>JWT</td>
+        </tr>
+        <tr>
+          <td><code>/api/journal</code></td>
+          <td>GET / POST</td>
+          <td>ジャーナル一覧・新規作成（Claude AI対話）</td>
+          <td>JWT</td>
+        </tr>
+        <tr>
+          <td><code>/api/journal/[id]</code></td>
+          <td>GET / PATCH</td>
+          <td>ジャーナル詳細取得・更新（お気に入りトグル）</td>
+          <td>JWT</td>
+        </tr>
+        <tr>
+          <td><code>/api/subscription</code></td>
+          <td>GET / POST</td>
+          <td>サブスクリプション状態取得・プラン変更</td>
+          <td>JWT</td>
+        </tr>
+        <tr>
+          <td><code>/api/usage</code></td>
+          <td>GET</td>
+          <td>利用残数（Free プラン制限チェック）</td>
+          <td>JWT</td>
+        </tr>
+        <tr>
+          <td><code>/api/streak</code></td>
+          <td>GET</td>
+          <td>連続記録日数</td>
+          <td>JWT</td>
+        </tr>
+        <tr>
+          <td><code>/api/stripe/checkout</code></td>
+          <td>POST</td>
+          <td>Stripe Checkout Session 作成</td>
+          <td>JWT</td>
+        </tr>
+        <tr>
+          <td><code>/api/stripe/webhook</code></td>
+          <td>POST</td>
+          <td>Stripe Webhook 受信</td>
+          <td>Stripe署名</td>
+        </tr>
+        <tr>
+          <td><code>/api/health</code></td>
+          <td>GET</td>
+          <td>ヘルスチェック</td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== C-6 外部サービス連携 ===== -->
+  <h2>C-6. 外部サービス連携図</h2>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>サービス名</th>
+          <th>通信方向</th>
+          <th>頻度</th>
+          <th>認証方式</th>
+          <th>フォールバック</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><a class="service-link" href="https://www.anthropic.com/api" target="_blank" rel="noopener">Anthropic API</a></td>
+          <td>アウトバウンド</td>
+          <td>ジャーナル作成時</td>
+          <td><span class="env-key">ANTHROPIC_API_KEY</span></td>
+          <td>未設定時はAI機能無効化</td>
+        </tr>
+        <tr>
+          <td><a class="service-link" href="https://stripe.com/" target="_blank" rel="noopener">Stripe</a></td>
+          <td>双方向</td>
+          <td>決済時 + Webhook</td>
+          <td><span class="env-key">STRIPE_SECRET_KEY</span><br><span class="env-key">STRIPE_WEBHOOK_SECRET</span></td>
+          <td>未設定時「準備中」メッセージ表示</td>
+        </tr>
+        <tr>
+          <td><a class="service-link" href="https://resend.com/" target="_blank" rel="noopener">Resend</a></td>
+          <td>アウトバウンド</td>
+          <td>認証・通知時</td>
+          <td><span class="env-key">RESEND_API_KEY</span></td>
+          <td>メール送信スキップ</td>
+        </tr>
+        <tr>
+          <td><a class="service-link" href="https://www.postgresql.org/" target="_blank" rel="noopener">PostgreSQL</a></td>
+          <td>双方向</td>
+          <td>全API呼び出し</td>
+          <td><span class="env-key">DATABASE_URL</span></td>
+          <td>なし（必須）</td>
+        </tr>
+        <tr>
+          <td><a class="service-link" href="https://vercel.com/" target="_blank" rel="noopener">Vercel</a></td>
+          <td>デプロイ</td>
+          <td>Git push 時</td>
+          <td>GitHub 連携（OAuth）</td>
+          <td>なし</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== C-7 Pro/Free ゲーティング ===== -->
+  <h2>C-7. Pro/Free プランのゲーティング構造</h2>
+  <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.9rem;">
+    フリーミアムモデル（無料 → Pro 月額980円）の機能制御フロー
+  </p>
+
+  <div class="mermaid-container">
+    <pre class="mermaid">
+graph TD
+  User["User"] --> PlanCheck{"plan === 'premium'?"}
+  PlanCheck -->|Yes| ProUI["Pro UI 表示"]
+  PlanCheck -->|No| FreeUI["Free UI 表示"]
+
+  ProUI --> WeeklyReport["AI 週間レポート<br/>フルレポート閲覧"]
+  ProUI --> AIRoutine["AI パーソナライズドルーティン<br/>グラデーションカード"]
+  ProUI --> MoodCalendar["月間ムードマップ<br/>カレンダー + 日付詳細"]
+  ProUI --> History30["セルフケア履歴<br/>30日間"]
+  ProUI --> DetailStats["詳細統計"]
+
+  FreeUI --> LockedReport["AI 週間レポート<br/>ロック + アップグレードボタン"]
+  FreeUI --> LockedRoutine["AI ルーティン<br/>点線ボーダー + ロック"]
+  FreeUI --> LockedCalendar["ムードマップ<br/>ロック + アップグレードボタン"]
+  FreeUI --> History7["セルフケア履歴<br/>7日間"]
+  FreeUI --> BasicStats["基本統計"]
+
+  LockedReport -->|タップ| Pricing["料金ページ"]
+  LockedRoutine -->|タップ| Pricing
+  LockedCalendar -->|タップ| Pricing
+    </pre>
+  </div>
+
+  <div class="note">
+    <strong>Free プラン（無料）：</strong><br>
+    毎日の気分記録 / セルフケア5種類 / AIジャーナリング（回数制限あり）/ 7日間履歴 / 基本統計<br><br>
+    <strong>Pro プラン（月額980円）：</strong><br>
+    Free の全機能 + AI週間レポート / AIパーソナライズドルーティン / 月間ムードマップカレンダー / 30日間履歴 / 詳細統計 / 優先サポート<br><br>
+    <strong>ゲーティング実装：</strong>Zustand の <code>plan</code> 状態で UI 切替。Pro 限定機能はロック表示 + 「Proにアップグレード」ボタン → 料金ページへ遷移。
+  </div>
+
+  <!-- ===== C-8 コスト試算 ===== -->
+  <h2>C-8. コスト試算（月額運用費の概算）</h2>
+  <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.9rem;">
+    2026年3月時点の実際の利用プランに基づく試算
+  </p>
+
+  <div class="cost-grid">
+    <div class="cost-card">
+      <div class="cost-card-title">
+        <a class="service-link" href="https://vercel.com/pricing" target="_blank" rel="noopener">Vercel</a>
+      </div>
+      <div class="cost-card-plan">Hobby（無料プラン）</div>
+      <div class="cost-card-price">$0</div>
+      <div class="cost-card-note">バックエンドAPI ホスティング。個人プロジェクト向け無料枠</div>
+    </div>
+
+    <div class="cost-card">
+      <div class="cost-card-title">
+        <a class="service-link" href="https://www.anthropic.com/pricing" target="_blank" rel="noopener">Anthropic API</a>
+      </div>
+      <div class="cost-card-plan">従量課金</div>
+      <div class="cost-card-price">$5〜30</div>
+      <div class="cost-card-note">AIジャーナリング + 週間レポート生成。ユーザー数に比例</div>
+    </div>
+
+    <div class="cost-card">
+      <div class="cost-card-title">
+        <a class="service-link" href="https://stripe.com/jp/pricing" target="_blank" rel="noopener">Stripe</a>
+      </div>
+      <div class="cost-card-plan">決済手数料 3.6%</div>
+      <div class="cost-card-price">3.6%</div>
+      <div class="cost-card-note">Pro プラン(980円)の決済時のみ発生。固定費なし</div>
+    </div>
+
+    <div class="cost-card">
+      <div class="cost-card-title">
+        <a class="service-link" href="https://resend.com/pricing" target="_blank" rel="noopener">Resend</a>
+      </div>
+      <div class="cost-card-plan">Free（月3,000通）</div>
+      <div class="cost-card-price">$0</div>
+      <div class="cost-card-note">メール認証 + サブスク通知。ユーザー1,000人未満なら無料枠内</div>
+    </div>
+
+    <div class="cost-card">
+      <div class="cost-card-title">PostgreSQL</div>
+      <div class="cost-card-plan">Docker（ローカル）/ Vercel Postgres（本番）</div>
+      <div class="cost-card-price">$0</div>
+      <div class="cost-card-note">ローカルは Docker 無料。本番は Vercel Postgres 無料枠</div>
+    </div>
+
+    <div class="cost-card">
+      <div class="cost-card-title">
+        <a class="service-link" href="https://github.com/pricing" target="_blank" rel="noopener">GitHub</a>
+      </div>
+      <div class="cost-card-plan">Free</div>
+      <div class="cost-card-price">$0</div>
+      <div class="cost-card-note">ソースコード管理。プライベートリポジトリ無料</div>
+    </div>
+
+    <div class="cost-card cost-total">
+      <div class="cost-card-title" style="font-size: 1.1rem;">合計（月額）</div>
+      <div class="cost-card-plan">2026年3月時点</div>
+      <div class="cost-card-price">$5〜30/月</div>
+      <div class="cost-card-note">
+        主なコスト: Anthropic API の従量課金<br>
+        その他は全て無料枠内で運用可能<br>
+        <strong>収益:</strong> Pro ユーザー × 980円/月 で回収
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>コスト最適化のポイント：</strong><br>
+    ・AI ジャーナリングは Free プランで回数制限あり（APIコスト抑制）<br>
+    ・Stripe は決済時のみ手数料発生（固定費ゼロ）<br>
+    ・Vercel Hobby プランでバックエンドAPI無料ホスティング<br>
+    ・PostgreSQL は Vercel Postgres 無料枠（256MB）で開始<br>
+    ・Pro ユーザー10人で約9,800円/月の収益 → API コスト十分にカバー可能<br><br>
+    <strong>スケーリング時の注意：</strong><br>
+    ・ユーザー増加時は Anthropic API コストが主要コスト（従量課金）<br>
+    ・Vercel Pro ($20/月) への移行は月間10万リクエスト超過時<br>
+    ・PostgreSQL は 256MB 超過時に有料プランへ移行
+  </div>
+
+  <footer>
+    Zenflow AIウェルネスコーチ — プロジェクトアーキテクチャレポート セクションC &nbsp;|&nbsp; 更新日: 2026-03-08
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      themeVariables: {
+        primaryColor: '#111638',
+        primaryTextColor: '#e8eaf6',
+        primaryBorderColor: '#7c5cff',
+        lineColor: '#00d4ff',
+        secondaryColor: '#0d1230',
+        tertiaryColor: '#161d48'
+      },
+      flowchart: {
+        curve: 'basis',
+        padding: 20
+      }
+    });
+  </script>
+</body>
+</html>
